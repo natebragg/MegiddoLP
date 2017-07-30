@@ -1,8 +1,10 @@
 #include "clp_wrapper.h"
 
+#include <stdlib.h>
+
 const char* Clp_Version()
 {
-    return 0;
+    return "0";
 }
 
 int Clp_VersionMajor()
@@ -20,14 +22,42 @@ int Clp_VersionRelease()
     return 0;
 }
 
+typedef struct Clp_Wrapper {
+    enum {
+        None = 0,
+        Final = 1,
+        Factorizations = 2,
+        PlusABitMore = 3,
+        Verbose = 4
+    } log_level;
+    enum {
+        Maximize = -1,
+        Ignore = 0,
+        Minimize = 1
+    } direction;
+    enum {
+        Unknown           = -1,
+        Optimal           = 0,
+        PrimalInfeasible  = 1,
+        DualInfeasible    = 2,
+        Stopped           = 3,
+        Errors            = 4,
+        UserStopped       = 5
+    } status;
+} Clp_Wrapper;
 
 Clp_Simplex *Clp_newModel()
 {
-    return 0;
+    Clp_Simplex *model = malloc(sizeof(Clp_Wrapper));
+    ((Clp_Wrapper*)model)->status = Unknown;
+    Clp_setLogLevel(model, Verbose);
+    Clp_setOptimizationDirection(model, Maximize);
+    return model;
 }
 
 void Clp_deleteModel(Clp_Simplex *model)
 {
+    free(model);
 }
 
 
@@ -52,16 +82,17 @@ void Clp_addColumns(Clp_Simplex *model, int number,
 
 void Clp_setOptimizationDirection(Clp_Simplex *model, double value)
 {
+    ((Clp_Wrapper*)model)->direction = value;
 }
 
 void Clp_setLogLevel(Clp_Simplex *model, int value)
 {
+    ((Clp_Wrapper*)model)->log_level = value;
 }
-
 
 int Clp_initialSolve(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->status;
 }
 
 
@@ -78,22 +109,22 @@ int Clp_getNumCols(Clp_Simplex *model)
 
 int Clp_isAbandoned(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->status == Errors;
 }
 
 int Clp_isProvenOptimal(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->status == Optimal;
 }
 
 int Clp_isProvenPrimalInfeasible(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->status == PrimalInfeasible;
 }
 
 int Clp_isProvenDualInfeasible(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->status == DualInfeasible;
 }
 
 int Clp_isPrimalObjectiveLimitReached(Clp_Simplex *model)
@@ -108,7 +139,7 @@ int Clp_isDualObjectiveLimitReached(Clp_Simplex *model)
 
 int Clp_isIterationLimitReached(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->status == Stopped;
 }
 
 
