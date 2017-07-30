@@ -27,7 +27,7 @@ inequalities point downwards.  Those constraints that are innermost to the
 feasible region form what are referred to as its convex and concave
 "envelopes".
 
-Next, randomly pair up all constraints from one (upward or downward) set and
+Next, arbitrarily pair up all constraints from one (upward or downward) set and
 calculate their intersections, all in linear time.  If a pair is parallel,
 discard the outer constraint and ignore this pair.  Find the median of the
 intersections by x-coordinate in linear time using deterministic median
