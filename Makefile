@@ -14,10 +14,11 @@ OBJS = $(OUTDIR)/clp_wrapper.o \
        $(OUTDIR)/geo.o
 HDRS = $(INCDIR)/clp_wrapper.h \
        $(INCDIR)/constraint.h \
+       $(INCDIR)/array.h \
        $(INCDIR)/geo.h
 
 CPPFLAGS = -I$(INCDIR)
-CFLAGS = -std=c89 -Wall -Werror -pedantic
+CFLAGS = -std=c89 -Wall -Werror -pedantic -Wno-unused-function
 ARFLAGS = rcvs
 
 all: $(TARGET)

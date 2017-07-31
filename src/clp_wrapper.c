@@ -1,4 +1,5 @@
 #include "clp_wrapper.h"
+#include "array.h"
 
 #include <stdlib.h>
 
@@ -44,6 +45,7 @@ typedef struct Clp_Wrapper {
         Errors            = 4,
         UserStopped       = 5
     } status;
+    array rows;
 } Clp_Wrapper;
 
 Clp_Simplex *Clp_newModel()
@@ -52,11 +54,18 @@ Clp_Simplex *Clp_newModel()
     ((Clp_Wrapper*)model)->status = Unknown;
     Clp_setLogLevel(model, Verbose);
     Clp_setOptimizationDirection(model, Maximize);
+    ((Clp_Wrapper*)model)->rows = make_array(4, double*);
     return model;
 }
 
 void Clp_deleteModel(Clp_Simplex *model)
 {
+    iter i = make_iter(&((Clp_Wrapper*)model)->rows);
+    double **row = NULL;
+    for(row = cur(&i, double*); row; row = next(&i, double*)) {
+        free(*row);
+    }
+    free_array(((Clp_Wrapper*)model)->rows);
     free(model);
 }
 
@@ -98,7 +107,7 @@ int Clp_initialSolve(Clp_Simplex *model)
 
 int Clp_getNumRows(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->rows.length;
 }
 
 int Clp_getNumCols(Clp_Simplex *model)
