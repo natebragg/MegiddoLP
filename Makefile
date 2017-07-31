@@ -6,11 +6,14 @@ INCDIR = include
 TSTDIR = test
 EXDIR = examples
 EXAMPLES = $(OUTDIR)/lemonade
-TESTS = $(OUTDIR)/geo
+TESTS = $(OUTDIR)/geo \
+        $(OUTDIR)/constraint
 TARGET = $(OUTDIR)/libmegiddolp.a
 OBJS = $(OUTDIR)/clp_wrapper.o \
+       $(OUTDIR)/constraint.o \
        $(OUTDIR)/geo.o
 HDRS = $(INCDIR)/clp_wrapper.h \
+       $(INCDIR)/constraint.h \
        $(INCDIR)/geo.h
 
 CPPFLAGS = -I$(INCDIR)
