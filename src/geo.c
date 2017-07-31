@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+const double pi = 3.14159265358979323846;
+
 double apply(double x, line f)
 {
     return f.a*x+f.b;
@@ -15,17 +17,17 @@ line from_points(point p, point q)
     return f;
 }
 
-point rotate_point(double theta, point p)
+point rotate_point(radians theta, point p)
 {
-    double sin_theta = sin(theta);
-    double cos_theta = cos(theta);
+    double sin_theta = sin(theta.theta);
+    double cos_theta = cos(theta.theta);
     point q;
     q.x = p.x * cos_theta + p.y * (-sin_theta);
     q.y = p.x * sin_theta + p.y *   cos_theta;
     return q;
 }
 
-line rotate_line(double theta, line f)
+line rotate_line(radians theta, line f)
 {
     point p, q;
     p.x = 0;

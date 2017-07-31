@@ -13,4 +13,4 @@ typedef struct constraint {
 } constraint;
 
 constraint from_standard(standard_constraint);
-constraint rotate_constraint(double, constraint);
+constraint rotate_constraint(radians, constraint);

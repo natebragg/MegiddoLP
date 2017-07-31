@@ -9,7 +9,7 @@ constraint from_standard(standard_constraint s)
     return c;
 }
 
-constraint rotate_constraint(double theta, constraint c)
+constraint rotate_constraint(radians theta, constraint c)
 {
     constraint c_rot;
     point p, q;

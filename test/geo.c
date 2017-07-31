@@ -3,41 +3,46 @@
 
 #include <math.h>
 
-const double pi = 3.14159265358979323846;
 const double epsilon = 0.00001;
 
 int test_rotate_line()
 {
     {
         line f, g, expected;
+        radians theta;
+        theta.theta = pi/2;
         f.a = -1;
         f.b = 0;
         expected.a = 1;
         expected.b = 0;
 
-        g = rotate_line(pi/2, f);
+        g = rotate_line(theta, f);
         assert(fabs(g.a - expected.a) < epsilon);
         assert(fabs(g.b - expected.b) < epsilon);
     }
     {
         line f, g, expected;
+        radians theta;
+        theta.theta = pi;
         f.a = 0;
         f.b = 0;
         expected.a = 0;
         expected.b = 0;
 
-        g = rotate_line(pi, f);
+        g = rotate_line(theta, f);
         assert(fabs(g.a - expected.a) < epsilon);
         assert(fabs(g.b - expected.b) < epsilon);
     }
     {
         line f, g, expected;
+        radians theta;
+        theta.theta = 5 * pi / 8;
         f.a = 0.5;
         f.b = 2;
         expected.a = -0.867295;
         expected.b = -2.367920;
 
-        g = rotate_line(5 * pi / 8, f);
+        g = rotate_line(theta, f);
         assert(fabs(g.a - expected.a) < epsilon);
         assert(fabs(g.b - expected.b) < epsilon);
     }
@@ -49,23 +54,27 @@ int test_rotate_point()
 {
     {
         point p, q, expected;
+        radians theta;
+        theta.theta = pi/2;
         p.x = -1;
         p.y = 0;
         expected.x = 0;
         expected.y = -1;
 
-        q = rotate_point(pi/2, p);
+        q = rotate_point(theta, p);
         assert(fabs(q.x - expected.x) < epsilon);
         assert(fabs(q.y - expected.y) < epsilon);
     }
     {
         point p, q, expected;
+        radians theta;
+        theta.theta = -pi/4;
         p.x = -1;
         p.y = 1;
         expected.x = 0;
         expected.y = 1.414214;
 
-        q = rotate_point(-pi/4, p);
+        q = rotate_point(theta, p);
         assert(fabs(q.x - expected.x) < epsilon);
         assert(fabs(q.y - expected.y) < epsilon);
     }

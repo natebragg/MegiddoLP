@@ -8,9 +8,15 @@ typedef struct line {
     double b;
 } line;
 
+typedef struct radians {
+    double theta;
+} radians;
+
+extern const double pi;
+
 double apply(double, line);
 line from_points(point, point);
-point rotate_point(double, point);
-line rotate_line(double, line);
+point rotate_point(radians, point);
+line rotate_line(radians, line);
 int parallel(line, line);
 point intersect(line, line);
