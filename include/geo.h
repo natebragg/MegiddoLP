@@ -16,6 +16,7 @@ extern const double pi;
 
 double apply(double, line);
 line from_points(point, point);
+radians angle_down(line);
 point rotate_point(radians, point);
 line rotate_line(radians, line);
 int parallel(line, line);

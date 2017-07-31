@@ -117,11 +117,38 @@ int test_intersect()
     return 0;
 }
 
+int test_angle_down()
+{
+    {
+        line f;
+        radians theta, expected;
+        f.a = 1;
+        f.b = 0;
+        expected.theta = 5 * pi / 4;
+
+        theta = angle_down(f);
+        assert(fabs(theta.theta - expected.theta) < epsilon);
+    }
+    {
+        line f;
+        radians theta, expected;
+        f.a = -1;
+        f.b = 0;
+        expected.theta = 3 * pi / 4;
+
+        theta = angle_down(f);
+        assert(fabs(theta.theta - expected.theta) < epsilon);
+    }
+
+    return 0;
+}
+
 int main()
 {
     int result = test_rotate_line();
     result += test_rotate_point();
     result += test_intersect();
+    result += test_angle_down();
     return result;
 }
 

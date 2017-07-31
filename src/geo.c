@@ -17,6 +17,17 @@ line from_points(point p, point q)
     return f;
 }
 
+radians angle_down(line f)
+{
+    radians theta;
+    /* counterclockwise offset from 0 radians
+       (right), the reference for atan, to down,
+       the reference for Megiddo's algorithm. */
+    const double offset = 3 * pi / 2;
+    theta.theta = offset - fmod(pi + atan(f.a), pi);
+    return theta;
+}
+
 point rotate_point(radians theta, point p)
 {
     double sin_theta = sin(theta.theta);
