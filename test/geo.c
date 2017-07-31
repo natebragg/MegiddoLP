@@ -3,10 +3,11 @@
 
 #include <math.h>
 
+const double pi = 3.14159265358979323846;
+const double epsilon = 0.00001;
+
 int test_rotate_line()
 {
-    const double pi = 3.14159265358979323846;
-    const double epsilon = 0.00001;
     {
         line f, g, expected;
         f.a = -1;
@@ -44,9 +45,36 @@ int test_rotate_line()
     return 0;
 }
 
+int test_rotate_point()
+{
+    {
+        point p, q, expected;
+        p.x = -1;
+        p.y = 0;
+        expected.x = 0;
+        expected.y = -1;
+
+        q = rotate_point(pi/2, p);
+        assert(fabs(q.x - expected.x) < epsilon);
+        assert(fabs(q.y - expected.y) < epsilon);
+    }
+    {
+        point p, q, expected;
+        p.x = -1;
+        p.y = 1;
+        expected.x = 0;
+        expected.y = 1.414214;
+
+        q = rotate_point(-pi/4, p);
+        assert(fabs(q.x - expected.x) < epsilon);
+        assert(fabs(q.y - expected.y) < epsilon);
+    }
+
+    return 0;
+}
+
 int test_intersect()
 {
-    const double epsilon = 0.00001;
     {
         line f, g;
         point p, expected;
@@ -83,6 +111,7 @@ int test_intersect()
 int main()
 {
     int result = test_rotate_line();
+    result += test_rotate_point();
     result += test_intersect();
     return result;
 }

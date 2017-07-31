@@ -15,22 +15,25 @@ line from_points(point p, point q)
     return f;
 }
 
-line rotate_line(double theta, line f)
+point rotate_point(double theta, point p)
 {
     double sin_theta = sin(theta);
     double cos_theta = cos(theta);
-    point p1, q1, p2, q2;
-    p1.x = 0;
-    p1.y = apply(0, f);
-    q1.x = 1;
-    q1.y = apply(1, f);
+    point q;
+    q.x = p.x * cos_theta + p.y * (-sin_theta);
+    q.y = p.x * sin_theta + p.y *   cos_theta;
+    return q;
+}
 
-    p2.x = p1.x * cos_theta + p1.y * (-sin_theta);
-    p2.y = p1.x * sin_theta + p1.y *   cos_theta;
-    q2.x = q1.x * cos_theta + q1.y * (-sin_theta);
-    q2.y = q1.x * sin_theta + q1.y *   cos_theta;
+line rotate_line(double theta, line f)
+{
+    point p, q;
+    p.x = 0;
+    p.y = apply(0, f);
+    q.x = 1;
+    q.y = apply(1, f);
 
-    return from_points(p2, q2);
+    return from_points(rotate_point(theta, p), rotate_point(theta, q));
 }
 
 int parallel(line f, line g)
