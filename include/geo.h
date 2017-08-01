@@ -1,3 +1,6 @@
+#ifndef GEO_H
+#define GEO_H
+
 typedef struct point {
     double x;
     double y;
@@ -21,3 +24,5 @@ point rotate_point(radians, point);
 line rotate_line(radians, line);
 int parallel(line, line);
 point intersect(line, line);
+
+#endif

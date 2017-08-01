@@ -1,3 +1,6 @@
+#ifndef CLP_WRAPPER_H
+#define CLP_WRAPPER_H
+
 typedef void Clp_Simplex;
 
 const char* Clp_Version();
@@ -30,3 +33,5 @@ int Clp_isIterationLimitReached(Clp_Simplex *);
 
 double *Clp_getRowActivity(Clp_Simplex *);
 double *Clp_getColSolution(Clp_Simplex *);
+
+#endif

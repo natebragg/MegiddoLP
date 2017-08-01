@@ -1,3 +1,6 @@
+#ifndef ARRAY_H
+#define ARRAY_H
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,3 +101,5 @@ static void *next_untyped(iter *i)
 
     return cur_untyped(i);
 }
+
+#endif

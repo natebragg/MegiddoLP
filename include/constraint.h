@@ -1,3 +1,6 @@
+#ifndef CONSTRAINT_H
+#define CONSTRAINT_H
+
 #include "geo.h"
 
 typedef struct standard_constraint {
@@ -14,3 +17,5 @@ typedef struct constraint {
 
 constraint from_standard(standard_constraint);
 constraint rotate_constraint(radians, constraint);
+
+#endif
