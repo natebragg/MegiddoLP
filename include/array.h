@@ -120,4 +120,31 @@ static void *next_untyped(iter *i)
     return cur_untyped(i);
 }
 
+#define partition(pred, a) \
+    partition_untyped((int (*)(const void *))pred, a)
+
+static array partition_untyped(int (*pred)(const void *), array *a)
+{
+    array falses = clone(a);
+    iter i = make_iter(a);
+    void *elem = NULL;
+    void *tmp = malloc(a->width);
+    for(elem = cur_untyped(&i); elem; elem = next_untyped(&i)) {
+        if(pred(elem)) {
+            if(elem > falses.start) {
+                memcpy(tmp, falses.start, a->width);
+                memcpy(falses.start, elem, a->width);
+                memcpy(elem, tmp, a->width);
+            }
+            falses.start = index_untyped(falses, 1);
+            falses.length -= 1;
+            falses.size -= 1;
+        }
+    }
+    free(tmp);
+    a->length -= falses.length;
+    a->size = a->length;
+    return falses;
+}
+
 #endif
