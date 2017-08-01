@@ -1,4 +1,5 @@
 #include "clp_wrapper.h"
+#include "megiddo.h"
 #include "constraint.h"
 #include "array.h"
 
@@ -156,7 +157,39 @@ void Clp_setLogLevel(Clp_Simplex *model, int value)
 
 int Clp_initialSolve(Clp_Simplex *model)
 {
-    return ((Clp_Wrapper*)model)->status;
+    Clp_Wrapper *m = model;
+    standard_constraint sc_objective = {0, 0, 0};
+    line objective;
+    array cs = make_array(m->rows_upper.length + m->rows_lower.length +
+                          m->cols_upper.length + m->cols_lower.length, constraint);
+    array* scs[4];
+    iter i;
+    int j = 0;
+    standard_constraint *sc = NULL;
+    scs[0] = &m->rows_upper;
+    scs[1] = &m->rows_lower;
+    scs[2] = &m->cols_upper;
+    scs[3] = &m->cols_lower;
+    for(; j < 4; ++j) {
+        i = make_iter(scs[j]);
+        for(sc = cur(&i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
+            *grow(&cs, constraint) = from_standard(*sc);
+        }
+    }
+
+    i = make_iter(&m->cols_upper);
+    for(sc = cur(&i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
+        sc_objective.a1 += sc->a1;
+        sc_objective.a2 += sc->a2;
+    }
+
+    objective = from_standard(sc_objective).f;
+
+    optimize(objective, cs);
+
+    free_array(cs);
+
+    return m->status;
 }
 
 
