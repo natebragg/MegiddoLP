@@ -4,18 +4,19 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 typedef struct array {
-    unsigned long size;
-    unsigned long length;
-    unsigned char width;
+    size_t size;
+    size_t length;
+    size_t width;
     int *refs;
     void *start;
 } array;
 
 typedef struct iter {
     array *a;
-    unsigned long idx;
+    ptrdiff_t idx;
 } iter;
 
 #define assert_type(a, type) \
@@ -24,7 +25,7 @@ typedef struct iter {
 #define make_array(size, type) \
     make_array_of_width(size, sizeof(type))
 
-static array make_array_of_width(unsigned long size, unsigned long width)
+static array make_array_of_width(size_t size, size_t width)
 {
     array a;
     a.size = size > 0 ? size : 1;
@@ -59,7 +60,7 @@ static void free_array(array *a)
 #define index(a, idx, type) \
     (type*)index_untyped((assert_type(&a, type), a), idx)
 
-static void *index_untyped(array a, unsigned long idx)
+static void *index_untyped(array a, ptrdiff_t idx)
 {
     return (char *)a.start + idx * a.width;
 }
