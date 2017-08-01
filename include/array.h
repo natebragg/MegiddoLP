@@ -58,11 +58,10 @@ static void *grow_untyped(array *a)
         a->size = 2 * a->size;
         a->start = malloc(a->width * a->size);
         memcpy(a->start, old, a->width * a->length);
-        memset(index_untyped(*a, a->length), 0, a->width);
         free(old);
     }
-    a->length++;
-    return index_untyped(*a, a->length - 1);
+    memset(index_untyped(*a, a->length), 0, a->width);
+    return index_untyped(*a, a->length++);
 }
 
 static iter make_iter(array *a)
