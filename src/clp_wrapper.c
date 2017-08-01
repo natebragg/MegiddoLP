@@ -69,10 +69,10 @@ Clp_Simplex *Clp_newModel()
 void Clp_deleteModel(Clp_Simplex *model)
 {
     Clp_Wrapper *m = model;
-    free_array(m->rows_upper);
-    free_array(m->rows_lower);
-    free_array(m->cols_upper);
-    free_array(m->cols_lower);
+    free_array(&m->rows_upper);
+    free_array(&m->rows_lower);
+    free_array(&m->cols_upper);
+    free_array(&m->cols_lower);
     free(model);
 }
 
@@ -187,7 +187,7 @@ int Clp_initialSolve(Clp_Simplex *model)
 
     optimize(objective, cs);
 
-    free_array(cs);
+    free_array(&cs);
 
     return m->status;
 }

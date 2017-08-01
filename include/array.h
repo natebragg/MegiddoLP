@@ -9,6 +9,7 @@ typedef struct array {
     unsigned long size;
     unsigned long length;
     unsigned char width;
+    int *refs;
     void *start;
 } array;
 
@@ -29,13 +30,30 @@ static array make_array_of_width(unsigned long size, unsigned long width)
     a.size = size > 0 ? size : 1;
     a.length = 0;
     a.width = width > 0 ? width : 1;
+    a.refs = malloc(sizeof(int));
+    *a.refs = 1;
     a.start = malloc(a.width * a.size);
     return a;
 }
 
-static void free_array(array a)
+static array clone(array *a)
 {
-    free(a.start);
+    array b;
+    b.size = a->size;
+    b.length = a->length;
+    b.width = a->width;
+    b.refs = a->refs;
+    *b.refs += 1;
+    b.start = a->start;
+    return b;
+}
+
+static void free_array(array *a)
+{
+    if(--(*a->refs) == 0) {
+        free(a->refs);
+        free(a->start);
+    }
 }
 
 #define index(a, idx, type) \
@@ -57,11 +75,11 @@ static void shrink(array *a)
 static void *grow_untyped(array *a)
 {
     if(a->length == a->size) {
-        void *old = a->start;
-        a->size = 2 * a->size;
-        a->start = malloc(a->width * a->size);
-        memcpy(a->start, old, a->width * a->length);
-        free(old);
+        array old = *a;
+        *a = make_array_of_width(2 * a->size, a->width);
+        a->length = old.length;
+        memcpy(a->start, old.start, a->width * a->length);
+        free_array(&old);
     }
     memset(index_untyped(*a, a->length), 0, a->width);
     return index_untyped(*a, a->length++);
