@@ -36,7 +36,7 @@ static void free_array(array a)
 }
 
 #define index(a, idx, type) \
-    (type*)index_untyped((assert_type(a, type), a), idx)
+    (type*)index_untyped((assert_type(&a, type), a), idx)
 
 static void *index_untyped(array a, unsigned long idx)
 {
