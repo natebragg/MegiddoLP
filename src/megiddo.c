@@ -12,7 +12,7 @@ point optimize(line objective, array constraints)
     array upwards, downwards, *set;
     iter i = make_iter(&constraints);
     constraint *c = NULL;
-    for(c = cur(&i, constraint); c; c = next(&i, constraint)) {
+    for(c = cur(i, constraint); c; c = next(&i, constraint)) {
         *c = rotate_constraint(theta, *c);
     }
 

@@ -66,7 +66,7 @@ static void *index_untyped(array a, unsigned long idx)
 
 static void shrink(array *a)
 {
-    a->length--;
+    a->length = a->length == 0 ? 0 : a->length - 1;
 }
 
 #define grow(a, type) \
@@ -99,11 +99,11 @@ static int valid(iter *i)
 }
 
 #define cur(i, type) \
-    (type*)cur_untyped((assert_type((i)->a, type), i))
+    (type*)cur_untyped((assert_type((i).a, type), i))
 
-static void *cur_untyped(iter *i)
+static void *cur_untyped(iter i)
 {
-    return index_untyped(*i->a, i->idx);
+    return index_untyped(*i.a, i.idx);
 }
 
 #define next(i, type) \
@@ -117,7 +117,7 @@ static void *next_untyped(iter *i)
         return NULL;
     }
 
-    return cur_untyped(i);
+    return cur_untyped(*i);
 }
 
 #define partition(pred, a) \
@@ -129,7 +129,7 @@ static array partition_untyped(int (*pred)(const void *), array *a)
     iter i = make_iter(a);
     void *elem = NULL;
     void *tmp = malloc(a->width);
-    for(elem = cur_untyped(&i); elem; elem = next_untyped(&i)) {
+    for(elem = cur_untyped(i); elem; elem = next_untyped(&i)) {
         if(pred(elem)) {
             if(elem > falses.start) {
                 memcpy(tmp, falses.start, a->width);

@@ -7,6 +7,7 @@ TSTDIR = test
 EXDIR = examples
 EXAMPLES = $(OUTDIR)/lemonade
 TESTS = $(OUTDIR)/geo \
+        $(OUTDIR)/array \
         $(OUTDIR)/constraint
 TARGET = $(OUTDIR)/libmegiddolp.a
 OBJS = $(OUTDIR)/clp_wrapper.o \

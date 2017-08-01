@@ -15,4 +15,7 @@
 #define assert_eq(a, b) \
     assert_pred(a == b)
 
+#define assert_neq(a, b) \
+    assert_pred(a != b)
+
 #endif

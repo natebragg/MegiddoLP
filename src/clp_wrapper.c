@@ -172,13 +172,13 @@ int Clp_initialSolve(Clp_Simplex *model)
     scs[3] = &m->cols_lower;
     for(; j < 4; ++j) {
         i = make_iter(scs[j]);
-        for(sc = cur(&i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
+        for(sc = cur(i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
             *grow(&cs, constraint) = from_standard(*sc);
         }
     }
 
     i = make_iter(&m->cols_upper);
-    for(sc = cur(&i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
+    for(sc = cur(i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
         sc_objective.a1 += sc->a1;
         sc_objective.a2 += sc->a2;
     }
