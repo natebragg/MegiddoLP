@@ -94,9 +94,9 @@ static iter make_iter(array *a)
     return i;
 }
 
-static int valid(iter *i)
+static int valid(iter i)
 {
-    return (i->idx >= 0 && i->idx < i->a->length);
+    return (i.idx >= 0 && i.idx < i.a->length);
 }
 
 #define cur(i, type) \
@@ -104,6 +104,10 @@ static int valid(iter *i)
 
 static void *cur_untyped(iter i)
 {
+    if(!valid(i)) {
+        return NULL;
+    }
+
     return index_untyped(*i.a, i.idx);
 }
 
@@ -113,7 +117,7 @@ static void *cur_untyped(iter i)
 static void *next_untyped(iter *i)
 {
     i->idx++;
-    if(!valid(i)) {
+    if(!valid(*i)) {
         i->idx--;
         return NULL;
     }
@@ -162,6 +166,38 @@ static array map_untyped(void (*f)(const void *, void *), array in, size_t width
     }
     free(u);
     return out;
+}
+
+#define ap(pred, in) \
+    ap_untyped((void (*)(const void *))pred, in)
+
+static void ap_untyped(void (*f)(const void *), array in)
+{
+    iter i = make_iter(&in);
+    void *v = NULL;
+    for(v = cur_untyped(i); v; v = next_untyped(&i)) {
+        f(v);
+    }
+}
+
+static array split(array *a, size_t size)
+{
+    size_t bs_count = (a->length + size - 1) / size;
+    array bs = make_array(bs_count, array);
+    array rest = clone(a);
+    int i = 0;
+    for(; i < bs_count; ++i) {
+        size_t ilen = rest.length < size ? rest.length : size;
+        size_t isiz = rest.size   < size ? rest.size   : size;
+        array *b = grow(&bs, array);
+        *b = clone(&rest);
+        b->length = ilen;
+        b->size   = isiz;
+        rest.start = index_untyped(rest, ilen);
+        rest.length -= ilen;
+        rest.size -= isiz;
+    }
+    return bs;
 }
 
 #endif

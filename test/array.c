@@ -112,6 +112,47 @@ int test_map()
     return 0;
 }
 
+static int accum_total = 0;
+
+void accum(const int *v)
+{
+    accum_total += *v;
+}
+
+int test_ap()
+{
+    array a = make_array(1, int);
+    int v = 0;
+    const int n = 100;
+    for(; v < n; ++v) {
+        *grow(&a, int) = v;
+    }
+    ap(accum, a);
+    free_array(&a);
+    assert_eq(accum_total, n*(n-1)/2);
+    return 0;
+}
+
+int test_split()
+{
+    array a = make_array(1, int);
+    array bs;
+    int v = 0, expected = 0, actual = -1;
+    for(; v < 100; ++v) {
+        *grow(&a, int) = v;
+    }
+    expected = *index(a, 99, int);
+    bs = split(&a, 3);
+
+    actual = *index(*index(bs, 33, array), 0, int);
+    assert_eq(actual, expected);
+    assert_eq(bs.length, 34);
+    ap(free_array, bs);
+    free_array(&bs);
+    free_array(&a);
+    return 0;
+}
+
 
 int main()
 {
@@ -122,5 +163,7 @@ int main()
     result += test_iter();
     result += test_partition();
     result += test_map();
+    result += test_ap();
+    result += test_split();
     return result;
 }
