@@ -17,8 +17,8 @@ int test_rotate_line()
         expected.b = 0;
 
         g = rotate_line(theta, f);
-        assert(fabs(g.a - expected.a) < epsilon);
-        assert(fabs(g.b - expected.b) < epsilon);
+        assert_within(g.a, expected.a, epsilon);
+        assert_within(g.b, expected.b, epsilon);
     }
     {
         line f, g, expected;
@@ -30,8 +30,8 @@ int test_rotate_line()
         expected.b = 0;
 
         g = rotate_line(theta, f);
-        assert(fabs(g.a - expected.a) < epsilon);
-        assert(fabs(g.b - expected.b) < epsilon);
+        assert_within(g.a, expected.a, epsilon);
+        assert_within(g.b, expected.b, epsilon);
     }
     {
         line f, g, expected;
@@ -43,8 +43,8 @@ int test_rotate_line()
         expected.b = -2.367920;
 
         g = rotate_line(theta, f);
-        assert(fabs(g.a - expected.a) < epsilon);
-        assert(fabs(g.b - expected.b) < epsilon);
+        assert_within(g.a, expected.a, epsilon);
+        assert_within(g.b, expected.b, epsilon);
     }
 
     return 0;
@@ -62,8 +62,8 @@ int test_rotate_point()
         expected.y = -1;
 
         q = rotate_point(theta, p);
-        assert(fabs(q.x - expected.x) < epsilon);
-        assert(fabs(q.y - expected.y) < epsilon);
+        assert_within(q.x, expected.x, epsilon);
+        assert_within(q.y, expected.y, epsilon);
     }
     {
         point p, q, expected;
@@ -75,8 +75,8 @@ int test_rotate_point()
         expected.y = 1.414214;
 
         q = rotate_point(theta, p);
-        assert(fabs(q.x - expected.x) < epsilon);
-        assert(fabs(q.y - expected.y) < epsilon);
+        assert_within(q.x, expected.x, epsilon);
+        assert_within(q.y, expected.y, epsilon);
     }
 
     return 0;
@@ -95,8 +95,8 @@ int test_intersect()
         expected.y = -1;
 
         p = intersect(f, g);
-        assert(fabs(p.x - expected.x) < epsilon);
-        assert(fabs(p.y - expected.y) < epsilon);
+        assert_within(p.x, expected.x, epsilon);
+        assert_within(p.y, expected.y, epsilon);
     }
 
     {
@@ -110,8 +110,8 @@ int test_intersect()
         expected.y = 0;
 
         p = intersect(f, g);
-        assert(fabs(p.x - expected.x) < epsilon);
-        assert(fabs(p.y - expected.y) < epsilon);
+        assert_within(p.x, expected.x, epsilon);
+        assert_within(p.y, expected.y, epsilon);
     }
 
     return 0;
@@ -127,7 +127,7 @@ int test_angle_down()
         expected.theta = 5 * pi / 4;
 
         theta = angle_down(f);
-        assert(fabs(theta.theta - expected.theta) < epsilon);
+        assert_within(theta.theta, expected.theta, epsilon);
     }
     {
         line f;
@@ -137,7 +137,7 @@ int test_angle_down()
         expected.theta = 3 * pi / 4;
 
         theta = angle_down(f);
-        assert(fabs(theta.theta - expected.theta) < epsilon);
+        assert_within(theta.theta, expected.theta, epsilon);
     }
 
     return 0;

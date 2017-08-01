@@ -46,7 +46,7 @@ $(EXAMPLES): $(OUTDIR)/%: $(EXDIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(TARGET) -o $@ -lm
 
 $(TESTS): $(TARGET)
-$(TESTS): $(OUTDIR)/%: $(TSTDIR)/%.c
+$(TESTS): $(OUTDIR)/%: $(TSTDIR)/%.c $(TSTDIR)/test.h
 	@mkdir -p $(OUTDIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(TARGET) -o $@ -lm
 	$@

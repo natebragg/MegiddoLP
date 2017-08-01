@@ -13,7 +13,7 @@ int test_rotate_constraint()
         c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
-        assert(c_.ord == leq);
+        assert_eq(c_.ord, leq);
     }
     {
         constraint c, c_;
@@ -24,7 +24,7 @@ int test_rotate_constraint()
         c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
-        assert(c_.ord == geq);
+        assert_eq(c_.ord, geq);
     }
     {
         constraint c, c_;
@@ -35,7 +35,7 @@ int test_rotate_constraint()
         c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
-        assert(c_.ord == geq);
+        assert_eq(c_.ord, geq);
     }
     {
         constraint c, c_;
@@ -46,7 +46,7 @@ int test_rotate_constraint()
         c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
-        assert(c_.ord == leq);
+        assert_eq(c_.ord, leq);
     }
 
 
