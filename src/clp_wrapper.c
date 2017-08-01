@@ -85,6 +85,31 @@ void Clp_addRows(Clp_Simplex *model, int number,
                  double *row_lower, double *row_upper, int *row_starts,
                  int *columns, double *elements)
 {
+    Clp_Wrapper *m = model;
+    int i = 0;
+    for(; i < number; ++i) {
+        double as[2] = {0, 0};
+        if(row_starts != NULL && columns != NULL && elements != NULL) {
+            int j = 0;
+            for(j = row_starts[i]; j < row_starts[i+1]; ++j) {
+                if(columns[j] >= 0 && columns[j] <= 1) {
+                    as[columns[j]] = elements[j];
+                }
+            }
+        }
+        {
+            standard_constraint *row = grow(&m->rows_upper, standard_constraint);
+            row->a1 = as[0];
+            row->a2 = as[1];
+            row->b  = row_upper[i];
+        }
+        {
+            standard_constraint *row = grow(&m->rows_lower, standard_constraint);
+            row->a1 = -as[0];
+            row->a2 = -as[1];
+            row->b  = row_lower[i];
+        }
+    }
 }
 
 void Clp_addColumns(Clp_Simplex *model, int number,
@@ -92,8 +117,32 @@ void Clp_addColumns(Clp_Simplex *model, int number,
                     double *objective, int *column_starts,
                     int *rows, double *elements)
 {
+    Clp_Wrapper *m = model;
+    int i = 0;
+    unsigned long col_len = m->cols_upper.length;
+    assert(number + col_len <= 2); /* Can only handle 2D LP. */
+    for(; i < number; ++i) {
+        if(column_starts != NULL && rows != NULL && elements != NULL) {
+            int j = 0;
+            for(j = column_starts[i]; j < column_starts[i+1]; ++j) {
+                if(rows[j] >= 0 && rows[j] <= m->rows_upper.length) {
+                    standard_constraint *row = index(m->rows_upper, rows[j], standard_constraint);
+                    *(col_len + i == 0 ? &row->a1 : &row->a2) = elements[j];
+                }
+            }
+        }
+        {
+            standard_constraint *col = grow(&m->cols_upper, standard_constraint);
+            *(col_len + i == 0 ? &col->a1 : &col->a2) = objective[i];
+            col->b  = column_upper[i];
+        }
+        {
+            standard_constraint *col = grow(&m->cols_lower, standard_constraint);
+            *(col_len + i == 0 ? &col->a1 : &col->a2) = -objective[i];
+            col->b  = column_lower[i];
+        }
+    }
 }
-
 
 void Clp_setOptimizationDirection(Clp_Simplex *model, double value)
 {
