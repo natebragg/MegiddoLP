@@ -77,8 +77,9 @@ int test_partition()
     odd = partition(is_even, &even);
     assert_eq(odd.length, even.length);
     i = make_iter(&even);
-    for(u = cur(i, int); u; u = next(&i, int)) {
-        assert_eq(*u % 2, 0);
+    for(v = 0, u = cur(i, int); u; ++v, ++v, u = next(&i, int)) {
+        /* postcondition: trues are stable, falses are unstable */
+        assert_eq(*u, v);
     }
     i = make_iter(&odd);
     for(u = cur(i, int); u; u = next(&i, int)) {
