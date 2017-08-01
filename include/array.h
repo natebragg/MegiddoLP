@@ -116,12 +116,11 @@ static void *cur_untyped(iter i)
 
 static void *next_untyped(iter *i)
 {
-    i->idx++;
     if(!valid(*i)) {
-        i->idx--;
         return NULL;
     }
 
+    i->idx++;
     return cur_untyped(*i);
 }
 
@@ -150,6 +149,19 @@ static array partition_untyped(int (*pred)(const void *), array *a)
     a->length -= falses.length;
     a->size = a->length;
     return falses;
+}
+
+static array partition_at(size_t idx, array *a)
+{
+    array front = clone(a);
+    size_t len = a->length < idx ? a->length : idx;
+    size_t siz = a->size   < idx ? a->size   : idx;
+    front.length = len;
+    front.size = siz;
+    a->start = index_untyped(*a, siz);
+    a->length -= len;
+    a->size -= siz;
+    return front;
 }
 
 #define map(pred, in, out_type) \
@@ -187,15 +199,7 @@ static array split(array *a, size_t size)
     array rest = clone(a);
     int i = 0;
     for(; i < bs_count; ++i) {
-        size_t ilen = rest.length < size ? rest.length : size;
-        size_t isiz = rest.size   < size ? rest.size   : size;
-        array *b = grow(&bs, array);
-        *b = clone(&rest);
-        b->length = ilen;
-        b->size   = isiz;
-        rest.start = index_untyped(rest, ilen);
-        rest.length -= ilen;
-        rest.size -= isiz;
+        *grow(&bs, array) = partition_at(size, &rest);
     }
     free_array(&rest);
     return bs;
