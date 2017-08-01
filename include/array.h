@@ -148,4 +148,20 @@ static array partition_untyped(int (*pred)(const void *), array *a)
     return falses;
 }
 
+#define map(pred, in, out_type) \
+    map_untyped((void (*)(const void *, void *))pred, in, sizeof(out_type))
+
+static array map_untyped(void (*f)(const void *, void *), array in, size_t width)
+{
+    array out = make_array_of_width(in.length, width);
+    iter i = make_iter(&in);
+    void *v = NULL, *u = malloc(width);
+    for(v = cur_untyped(i); v; v = next_untyped(&i)) {
+        f(v, u);
+        memcpy(grow_untyped(&out), u, width);
+    }
+    free(u);
+    return out;
+}
+
 #endif

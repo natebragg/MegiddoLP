@@ -1,6 +1,8 @@
 #include "array.h"
 #include "test.h"
 
+#include <math.h>
+
 int test_clone()
 {
     int expected = 1024;
@@ -90,6 +92,26 @@ int test_partition()
     return 0;
 }
 
+void root(int *i, double *d)
+{
+    *d = sqrt(*i);
+}
+
+int test_map()
+{
+    array a = make_array(1, int);
+    array b;
+    int v = 0;
+    for(; v < 101; ++v) {
+        *grow(&a, int) = v;
+    }
+    b = map(root, a, double);
+    free_array(&a);
+    assert_within(*index(b, 64, double), 8, 0.0001);
+    assert_within(*index(b, 100, double), 10, 0.0001);
+    return 0;
+}
+
 
 int main()
 {
@@ -99,5 +121,6 @@ int main()
     result += test_grow();
     result += test_iter();
     result += test_partition();
+    result += test_map();
     return result;
 }
