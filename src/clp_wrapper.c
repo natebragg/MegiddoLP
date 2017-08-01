@@ -1,4 +1,5 @@
 #include "clp_wrapper.h"
+#include "constraint.h"
 #include "array.h"
 
 #include <stdlib.h>
@@ -45,27 +46,32 @@ typedef struct Clp_Wrapper {
         Errors            = 4,
         UserStopped       = 5
     } status;
-    array rows;
+    array rows_upper;
+    array rows_lower;
+    array cols_upper;
+    array cols_lower;
 } Clp_Wrapper;
 
 Clp_Simplex *Clp_newModel()
 {
-    Clp_Simplex *model = malloc(sizeof(Clp_Wrapper));
-    ((Clp_Wrapper*)model)->status = Unknown;
+    Clp_Wrapper *model = malloc(sizeof(Clp_Wrapper));
+    model->status = Unknown;
     Clp_setLogLevel(model, Verbose);
     Clp_setOptimizationDirection(model, Maximize);
-    ((Clp_Wrapper*)model)->rows = make_array(4, double*);
+    model->rows_upper = make_array(4, standard_constraint);
+    model->rows_lower = make_array(4, standard_constraint);
+    model->cols_upper = make_array(4, standard_constraint);
+    model->cols_lower = make_array(4, standard_constraint);
     return model;
 }
 
 void Clp_deleteModel(Clp_Simplex *model)
 {
-    iter i = make_iter(&((Clp_Wrapper*)model)->rows);
-    double **row = NULL;
-    for(row = cur(&i, double*); row; row = next(&i, double*)) {
-        free(*row);
-    }
-    free_array(((Clp_Wrapper*)model)->rows);
+    Clp_Wrapper *m = model;
+    free_array(m->rows_upper);
+    free_array(m->rows_lower);
+    free_array(m->cols_upper);
+    free_array(m->cols_lower);
     free(model);
 }
 
@@ -107,12 +113,12 @@ int Clp_initialSolve(Clp_Simplex *model)
 
 int Clp_getNumRows(Clp_Simplex *model)
 {
-    return ((Clp_Wrapper*)model)->rows.length;
+    return ((Clp_Wrapper*)model)->rows_upper.length;
 }
 
 int Clp_getNumCols(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->cols_upper.length;
 }
 
 
