@@ -197,6 +197,7 @@ static array split(array *a, size_t size)
         rest.length -= ilen;
         rest.size -= isiz;
     }
+    free_array(&rest);
     return bs;
 }
 

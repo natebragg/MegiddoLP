@@ -106,9 +106,10 @@ int test_map()
         *grow(&a, int) = v;
     }
     b = map(root, a, double);
-    free_array(&a);
     assert_within(*index(b, 64, double), 8, 0.0001);
     assert_within(*index(b, 100, double), 10, 0.0001);
+    free_array(&b);
+    free_array(&a);
     return 0;
 }
 
