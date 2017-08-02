@@ -109,11 +109,14 @@ solution optimize(line objective, array constraints)
         if(parallel(max_convex_c, min_concave_c)) {
             result.feasibility = infeasible;
         } else {
+            enum {left_of_midpoint, right_of_midpoint} direction;
+            point where = intersect(max_convex_c, min_concave_c);
             double max_convex_y = *index(upys, max_convex, double);
             double min_concave_y = *index(dnys, min_concave, double);
             if(max_convex_y > min_concave_y) {
                 /* the optimum lies in the direction of their intersection */
-            } else if(max_convex_y < min_concave_y) {
+                direction = median < where.x ? right_of_midpoint : left_of_midpoint;
+            } else {
                 /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
                 array cross_values = make_array(1, double*);
                 array cross_indexes = map1(index_of, &upys, *foldl1(equal_to, &max_convex_y, &cross_values, upys, array), size_t);
@@ -124,13 +127,23 @@ solution optimize(line objective, array constraints)
                     result.feasibility = feasible;
                     result.optimum.x = median;
                     result.optimum.y = max_convex_y;
+                } else if(max_convex_y < min_concave_y) {
+                    /* and the optimum lies in the opposite direction of their intersection. */
+                    direction = where.x < median ? right_of_midpoint : left_of_midpoint;
                 } else {
-                /* and the optimum lies in the opposite direction of their intersection. */
+                    /* the optimum lies to the side where min_concave_c > max_convex_c */
+                    double right_concave_y = apply(median + 1, min_concave_c);
+                    double right_convex_y = apply(median + 1, max_convex_c);
+                    direction = right_convex_y < right_concave_y ? right_of_midpoint : left_of_midpoint;
                 }
                 free_array(&cross_indexes);
                 free_array(&cross_values);
-            } else {
-                /* the optimum lies to the side where min_concave_c > max_convex_c */
+            }
+
+            if(result.feasibility == unknown) {
+                if(direction == left_of_midpoint) {
+                } else {
+                }
             }
         }
         free_array(&dnys);
