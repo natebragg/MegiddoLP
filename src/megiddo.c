@@ -45,6 +45,21 @@ static array make_pairs(array a)
     return pairs;
 }
 
+static void apply_median(const double *median, const constraint *c, double *y)
+{
+    *y = apply(*median, c->f);
+}
+
+static void idx_max(const double **acc, const double *v)
+{
+    *acc = (*acc == NULL || **acc < *v) ? v : *acc;
+}
+
+static void idx_min(const double **acc, const double *v)
+{
+    *acc = (*acc == NULL || **acc > *v) ? v : *acc;
+}
+
 point optimize(line objective, array constraints)
 {
     point result = {0, 0};
@@ -64,6 +79,17 @@ point optimize(line objective, array constraints)
         array parallels = partition(is_not_parallel, &pairs);
         array outers = map(pair_outer, parallels, constraint*);
         array xs = map(pair_intersect_x, pairs, double);
+        double median = median = find_median(&xs);
+        array upys = map1(apply_median, &median, upwards, double);
+        array dnys = map1(apply_median, &median, downwards, double);
+        double *tmp = NULL;
+        size_t max_convex = index_of(upys, foldl(idx_max, &tmp, upys));
+        size_t min_concave = index_of(dnys, foldl(idx_min, &tmp, dnys));
+        if(parallel(index(upwards, max_convex, constraint)->f, index(downwards, min_concave, constraint)->f)) {
+        } else {
+        }
+        free_array(&dnys);
+        free_array(&upys);
         free_array(&xs);
         free_array(&outers);
         free_array(&parallels);
