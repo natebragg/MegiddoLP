@@ -8,14 +8,17 @@ EXDIR = examples
 EXAMPLES = $(OUTDIR)/lemonade
 TESTS = $(OUTDIR)/geo \
         $(OUTDIR)/array \
+        $(OUTDIR)/median \
         $(OUTDIR)/constraint
 TARGET = $(OUTDIR)/libmegiddolp.a
 OBJS = $(OUTDIR)/clp_wrapper.o \
        $(OUTDIR)/constraint.o \
+       $(OUTDIR)/median.o \
        $(OUTDIR)/megiddo.o \
        $(OUTDIR)/geo.o
 HDRS = $(INCDIR)/clp_wrapper.h \
        $(INCDIR)/constraint.h \
+       $(INCDIR)/median.h \
        $(INCDIR)/megiddo.h \
        $(INCDIR)/array.h \
        $(INCDIR)/geo.h

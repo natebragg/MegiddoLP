@@ -1,4 +1,5 @@
 #include "megiddo.h"
+#include "median.h"
 
 #include <stdlib.h>
 
@@ -42,35 +43,6 @@ static array make_pairs(array a)
         p->c2 = c2;
     }
     return pairs;
-}
-
-static int cmpx(const void *lhs, const void *rhs)
-{
-    return *(double*)lhs < *(double*)rhs ? -1 : 1;
-}
-
-static void find_median_(array *a, double *median)
-{
-    double find_median(array *);
-    *median = find_median(a);
-}
-
-double find_median(array *a)
-{
-    double result = 0;
-    if(a->length <= 5) {
-        qsort(a->start, a->length, a->width, cmpx);
-        result = *index(*a, a->length / 2, double);
-    } else {
-        array fivers = split(a, 5);
-        array medians = map(find_median_, fivers, double);
-        result = find_median(&medians);
-        ap(free_array, fivers);
-        free_array(&fivers);
-        free_array(&medians);
-    }
-
-    return result;
 }
 
 point optimize(line objective, array constraints)
