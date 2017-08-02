@@ -85,8 +85,20 @@ point optimize(line objective, array constraints)
         double *tmp = NULL;
         size_t max_convex = index_of(upys, foldl(idx_max, &tmp, upys));
         size_t min_concave = index_of(dnys, foldl(idx_min, &tmp, dnys));
-        if(parallel(index(upwards, max_convex, constraint)->f, index(downwards, min_concave, constraint)->f)) {
+        line max_convex_c = index(upwards, max_convex, constraint)->f;
+        line min_concave_c = index(downwards, min_concave, constraint)->f;
+        if(parallel(max_convex_c, min_concave_c)) {
         } else {
+            double max_convex_y = *index(upys, max_convex, double);
+            double min_concave_y = *index(dnys, min_concave, double);
+            if(max_convex_y > min_concave_y) {
+                /* the optimum lies in the direction of their intersection */
+            } else if(max_convex_y < min_concave_y) {
+                /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
+                /* and the optimum lies in the opposite direction of their intersection. */
+            } else {
+                /* the optimum lies to the side where min_concave_c > max_convex_c */
+            }
         }
         free_array(&dnys);
         free_array(&upys);
