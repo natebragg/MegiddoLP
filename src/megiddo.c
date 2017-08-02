@@ -60,9 +60,28 @@ static void idx_min(const double **acc, const double *v)
     *acc = (*acc == NULL || **acc > *v) ? v : *acc;
 }
 
-point optimize(line objective, array constraints)
+static void equal_to(const double *lhs, array *accum, const double *rhs)
 {
-    point result = {0, 0};
+    if(*lhs == *rhs) {
+        *grow(accum, const double*) = rhs;
+    }
+}
+
+static void slope_max_at(const array *upwards, double *acc, const size_t *idx)
+{
+    double slope = index(*upwards, *idx, constraint)->f.a;
+    *acc = (acc == NULL || *acc < slope) ? slope : *acc;
+}
+
+static void slope_min_at(const array *upwards, double *acc, const size_t *idx)
+{
+    double slope = index(*upwards, *idx, constraint)->f.a;
+    *acc = (acc == NULL || *acc > slope) ? slope : *acc;
+}
+
+solution optimize(line objective, array constraints)
+{
+    solution result = {unknown, {0, 0}};
     radians theta = angle_down(objective);
     array upwards, downwards, *set;
     iter i = make_iter(&constraints);
@@ -74,7 +93,7 @@ point optimize(line objective, array constraints)
     downwards = partition(is_pointing_up, &constraints);
     upwards = clone(&constraints);
     set = &downwards;
-    while(1) {
+    while(result.feasibility == unknown) {
         array pairs = make_pairs(*set);
         array parallels = partition(is_not_parallel, &pairs);
         array outers = map(pair_outer, parallels, constraint*);
@@ -88,6 +107,7 @@ point optimize(line objective, array constraints)
         line max_convex_c = index(upwards, max_convex, constraint)->f;
         line min_concave_c = index(downwards, min_concave, constraint)->f;
         if(parallel(max_convex_c, min_concave_c)) {
+            result.feasibility = infeasible;
         } else {
             double max_convex_y = *index(upys, max_convex, double);
             double min_concave_y = *index(dnys, min_concave, double);
@@ -95,7 +115,20 @@ point optimize(line objective, array constraints)
                 /* the optimum lies in the direction of their intersection */
             } else if(max_convex_y < min_concave_y) {
                 /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
+                array cross_values = make_array(1, double*);
+                array cross_indexes = map1(index_of, &upys, *foldl1(equal_to, &max_convex_y, &cross_values, upys, array), size_t);
+                double *s_tmp = NULL, *S_tmp = NULL;
+                double s_g = *foldl1(slope_min_at, &upwards, s_tmp, cross_indexes, double);
+                double S_g = *foldl1(slope_max_at, &upwards, S_tmp, cross_indexes, double);
+                if(s_g <= 0 && 0 <= S_g) {
+                    result.feasibility = feasible;
+                    result.optimum.x = median;
+                    result.optimum.y = max_convex_y;
+                } else {
                 /* and the optimum lies in the opposite direction of their intersection. */
+                }
+                free_array(&cross_indexes);
+                free_array(&cross_values);
             } else {
                 /* the optimum lies to the side where min_concave_c > max_convex_c */
             }
