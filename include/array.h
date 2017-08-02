@@ -240,8 +240,8 @@ static void ap_untyped(void (*f)(const void *), array in)
     }
 }
 
-#define foldl(f, accum, in) \
-    foldl_untyped((void (*)(void *, const void *))f, accum, in)
+#define foldl(f, accum, in, type) \
+    ((type*)foldl_untyped((void (*)(void *, const void *))f, accum, in))
 
 static void *foldl_untyped(void (*f)(void *, const void *), void *accum, array in)
 {
@@ -252,6 +252,20 @@ static void *foldl_untyped(void (*f)(void *, const void *), void *accum, array i
     }
     return accum;
 }
+
+#define foldl1(f, userdata, accum, in, type) \
+    ((type*)foldl1_untyped((void (*)(const void *, void *, const void *))f, userdata, accum, in))
+
+static void *foldl1_untyped(void (*f)(const void *, void *, const void *), const void *userdata, void *accum, array in)
+{
+    iter i = make_iter(&in);
+    void *v = NULL;
+    for(v = cur_untyped(i); v; v = next_untyped(&i)) {
+        f(userdata, accum, v);
+    }
+    return accum;
+}
+
 
 static array split(array *a, size_t size)
 {

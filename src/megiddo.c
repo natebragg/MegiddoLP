@@ -82,9 +82,9 @@ point optimize(line objective, array constraints)
         double median = median = find_median(&xs);
         array upys = map1(apply_median, &median, upwards, double);
         array dnys = map1(apply_median, &median, downwards, double);
-        double *tmp = NULL;
-        size_t max_convex = index_of(upys, foldl(idx_max, &tmp, upys));
-        size_t min_concave = index_of(dnys, foldl(idx_min, &tmp, dnys));
+        double *max_tmp = NULL, *min_tmp = NULL;
+        size_t max_convex = index_of(upys, *foldl(idx_max, &max_tmp, upys, double*));
+        size_t min_concave = index_of(dnys, *foldl(idx_min, &min_tmp, dnys, double*));
         line max_convex_c = index(upwards, max_convex, constraint)->f;
         line min_concave_c = index(downwards, min_concave, constraint)->f;
         if(parallel(max_convex_c, min_concave_c)) {

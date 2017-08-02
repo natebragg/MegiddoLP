@@ -160,7 +160,7 @@ int test_foldl()
     for(; v < n; ++v) {
         *grow(&a, int) = v;
     }
-    foldl(accum_fold, &total, a);
+    foldl(accum_fold, &total, a, int);
     free_array(&a);
     assert_eq(total, n*(n-1)/2);
     return 0;
