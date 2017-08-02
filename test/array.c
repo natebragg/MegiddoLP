@@ -134,6 +134,25 @@ int test_ap()
     return 0;
 }
 
+void accum_fold(int *acc, const int *v)
+{
+    *acc += *v;
+}
+
+int test_foldl()
+{
+    array a = make_array(1, int);
+    int v = 0, total = 0;
+    const int n = 100;
+    for(; v < n; ++v) {
+        *grow(&a, int) = v;
+    }
+    foldl(accum_fold, &total, a);
+    free_array(&a);
+    assert_eq(total, n*(n-1)/2);
+    return 0;
+}
+
 int test_split()
 {
     array a = make_array(1, int);
@@ -165,6 +184,7 @@ int main()
     result += test_partition();
     result += test_map();
     result += test_ap();
+    result += test_foldl();
     result += test_split();
     return result;
 }

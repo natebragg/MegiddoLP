@@ -191,8 +191,8 @@ static array partition_at(size_t idx, array *a)
     return front;
 }
 
-#define map(pred, in, out_type) \
-    map_untyped((void (*)(const void *, void *))pred, in, sizeof(out_type))
+#define map(f, in, out_type) \
+    map_untyped((void (*)(const void *, void *))f, in, sizeof(out_type))
 
 static array map_untyped(void (*f)(const void *, void *), array in, size_t width)
 {
@@ -207,8 +207,24 @@ static array map_untyped(void (*f)(const void *, void *), array in, size_t width
     return out;
 }
 
-#define ap(pred, in) \
-    ap_untyped((void (*)(const void *))pred, in)
+#define map1(f, userdata, in, out_type) \
+    map1_untyped((void (*)(const void *, const void *, void *))f, userdata, in, sizeof(out_type))
+
+static array map1_untyped(void (*f)(const void *, const void *, void *), const void *userdata, array in, size_t width)
+{
+    array out = make_array_of_width(in.length, width);
+    iter i = make_iter(&in);
+    void *v = NULL, *u = malloc(width);
+    for(v = cur_untyped(i); v; v = next_untyped(&i)) {
+        f(userdata, v, u);
+        memcpy(grow_untyped(&out), u, width);
+    }
+    free(u);
+    return out;
+}
+
+#define ap(f, in) \
+    ap_untyped((void (*)(const void *))f, in)
 
 static void ap_untyped(void (*f)(const void *), array in)
 {
@@ -217,6 +233,19 @@ static void ap_untyped(void (*f)(const void *), array in)
     for(v = cur_untyped(i); v; v = next_untyped(&i)) {
         f(v);
     }
+}
+
+#define foldl(f, accum, in) \
+    foldl_untyped((void (*)(void *, const void *))f, accum, in)
+
+static void *foldl_untyped(void (*f)(void *, const void *), void *accum, array in)
+{
+    iter i = make_iter(&in);
+    void *v = NULL;
+    for(v = cur_untyped(i); v; v = next_untyped(&i)) {
+        f(accum, v);
+    }
+    return accum;
 }
 
 static array split(array *a, size_t size)
