@@ -58,7 +58,7 @@ static void free_array(array *a)
 }
 
 #define index(a, idx, type) \
-    (type*)index_untyped((assert_type(&a, type), a), idx)
+    ((type*)index_untyped((assert_type(&a, type), a), idx))
 
 static void *index_untyped(array a, ptrdiff_t idx)
 {
@@ -71,7 +71,7 @@ static void shrink(array *a)
 }
 
 #define grow(a, type) \
-    (type*)grow_untyped((assert_type(a, type), a))
+    ((type*)grow_untyped((assert_type(a, type), a)))
 
 static void *grow_untyped(array *a)
 {
@@ -100,7 +100,7 @@ static int valid(iter i)
 }
 
 #define cur(i, type) \
-    (type*)cur_untyped((assert_type((i).a, type), i))
+    ((type*)cur_untyped((assert_type((i).a, type), i)))
 
 static void *cur_untyped(iter i)
 {
@@ -112,7 +112,7 @@ static void *cur_untyped(iter i)
 }
 
 #define next(i, type) \
-    (type*)next_untyped((assert_type((i)->a, type), i))
+    ((type*)next_untyped((assert_type((i)->a, type), i)))
 
 static void *next_untyped(iter *i)
 {
