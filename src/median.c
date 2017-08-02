@@ -26,11 +26,9 @@ static double find_median_candidate(array *a)
     return result;
 }
 
-static double candidate = 0;
-
-static int less_than_candidate(const double *v)
+static int less_than_candidate(const double *candidate, const double *v)
 {
-    return *v < candidate;
+    return *v < *candidate;
 }
 
 double find_rank(size_t r, array *a)
@@ -43,8 +41,8 @@ double find_rank(size_t r, array *a)
     } else {
         array less = clone(a), geqs;
         size_t pos = 0;
-        candidate = find_median_candidate(a);
-        geqs = partition(less_than_candidate, &less);
+        double candidate = find_median_candidate(a);
+        geqs = partition1(less_than_candidate, &candidate, &less);
         pos = less.length;
         if(pos == r) {
             result = candidate;

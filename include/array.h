@@ -151,6 +151,33 @@ static array partition_untyped(int (*pred)(const void *), array *a)
     return falses;
 }
 
+#define partition1(pred, userdata, a) \
+    partition1_untyped((int (*)(const void *, const void *))pred, userdata, a)
+
+static array partition1_untyped(int (*pred)(const void *, const void *), void *userdata, array *a)
+{
+    array falses = clone(a);
+    iter i = make_iter(a);
+    void *elem = NULL;
+    void *tmp = malloc(a->width);
+    for(elem = cur_untyped(i); elem; elem = next_untyped(&i)) {
+        if(pred(userdata, elem)) {
+            if(elem > falses.start) {
+                memcpy(tmp, falses.start, a->width);
+                memcpy(falses.start, elem, a->width);
+                memcpy(elem, tmp, a->width);
+            }
+            falses.start = index_untyped(falses, 1);
+            falses.length -= 1;
+            falses.size -= 1;
+        }
+    }
+    free(tmp);
+    a->length -= falses.length;
+    a->size = a->length;
+    return falses;
+}
+
 static array partition_at(size_t idx, array *a)
 {
     array front = clone(a);
