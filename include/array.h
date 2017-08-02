@@ -65,6 +65,11 @@ static void *index_untyped(array a, ptrdiff_t idx)
     return (char *)a.start + idx * a.width;
 }
 
+static size_t index_of(array a, void *value)
+{
+    return ((char *)value - (char *)a.start) / a.width;
+}
+
 static void shrink(array *a)
 {
     a->length = a->length == 0 ? 0 : a->length - 1;

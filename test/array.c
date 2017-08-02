@@ -24,6 +24,19 @@ int test_index()
     return 0;
 }
 
+int test_index_of()
+{
+    array a = make_array(1, int);
+    int expected = 1000;
+    int v = 0, *u;
+    for(; v < expected + 1; ++v) {
+        u = grow(&a, int);
+    }
+    assert_eq(index_of(a, u), expected);
+    free_array(&a);
+    return 0;
+}
+
 int test_shrink()
 {
     array a = make_array(1, int);
@@ -178,6 +191,7 @@ int main()
 {
     int result = test_clone();
     result += test_index();
+    result += test_index_of();
     result += test_shrink();
     result += test_grow();
     result += test_iter();
