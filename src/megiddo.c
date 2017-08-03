@@ -79,9 +79,45 @@ static void slope_min_at(const array *upwards, double **acc, const size_t *idx)
     *acc = (*acc == NULL || **acc > *slope) ? slope : *acc;
 }
 
+typedef enum direction {
+    left_of_median,
+    right_of_median
+} direction;
+
+typedef struct quadrant_filter {
+    double median;
+    direction opt_dir;
+    enum {above, below} outer_is;
+} quadrant_filter;
+
+static int in_dir(double a, direction dir, double median)
+{
+    return (dir == left_of_median) ? a < median : a > median;
+}
+
+static void discard_outer(const quadrant_filter *qf, array *acc, const pair *p)
+{
+    if(in_dir(intersect(p->c1->f, p->c2->f).x, qf->opt_dir, qf->median)) {
+        *grow(acc, constraint) = *p->c1;
+        *grow(acc, constraint) = *p->c2;
+    } else {
+        double epsilon = (qf->opt_dir == left_of_median) ? -1 : 1;
+        double opt_side_y1 = apply(qf->median + epsilon, p->c1->f);
+        double opt_side_y2 = apply(qf->median + epsilon, p->c2->f);
+        *grow(acc, constraint) = (qf->outer_is == below ?
+                                    (opt_side_y1 > opt_side_y2) :
+                                    (opt_side_y1 < opt_side_y2)) ? *p->c1 : *p->c2;
+    }
+}
+
 static void index_of_(const array *a, const double **value, size_t *out)
 {
     *out = index_of(*a, *value);
+}
+
+static void append(array *acc, const constraint *c)
+{
+    *grow(acc, constraint) = *c;
 }
 
 solution optimize(line objective, array constraints)
@@ -113,13 +149,13 @@ solution optimize(line objective, array constraints)
         if(parallel(max_convex_c, min_concave_c)) {
             result.feasibility = infeasible;
         } else {
-            enum {left_of_median, right_of_median} direction;
+            direction opt_dir;
             point where = intersect(max_convex_c, min_concave_c);
             double max_convex_y = *index(upys, max_convex, double);
             double min_concave_y = *index(dnys, min_concave, double);
             if(max_convex_y > min_concave_y) {
                 /* the optimum lies in the direction of their intersection */
-                direction = median < where.x ? right_of_median : left_of_median;
+                opt_dir = median < where.x ? right_of_median : left_of_median;
             } else {
                 /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
                 array cross_values = make_array(1, double*);
@@ -133,12 +169,12 @@ solution optimize(line objective, array constraints)
                     result.optimum.y = max_convex_y;
                 } else if(max_convex_y < min_concave_y) {
                     /* and the optimum lies in the opposite direction of their intersection. */
-                    direction = where.x < median ? right_of_median : left_of_median;
+                    opt_dir = where.x < median ? right_of_median : left_of_median;
                 } else {
                     /* the optimum lies to the side where min_concave_c > max_convex_c */
                     double right_concave_y = apply(median + 1, min_concave_c);
                     double right_convex_y = apply(median + 1, max_convex_c);
-                    direction = right_convex_y < right_concave_y ? right_of_median : left_of_median;
+                    opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
                 }
                 free_array(&cross_indexes);
                 free_array(&cross_values);
@@ -146,9 +182,15 @@ solution optimize(line objective, array constraints)
 
             if(result.feasibility == unknown) {
                 array inners = map(pair_inner, parallels, constraint*);
-                if(direction == left_of_median) {
-                } else {
-                }
+                array culled = make_array(set->length, constraint);
+                quadrant_filter f;
+                f.median = median;
+                f.opt_dir = opt_dir;
+                f.outer_is = set == &downwards ? below : above;
+                foldl1(discard_outer, &f, &culled, pairs, array);
+                free_array(set);
+                *set = culled;
+                foldl(append, set, inners, array);
                 free_array(&inners);
             }
         }
