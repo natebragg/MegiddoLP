@@ -65,7 +65,7 @@ static void *index_untyped(array a, ptrdiff_t idx)
     return (char *)a.start + idx * a.width;
 }
 
-static size_t index_of(array a, void *value)
+static size_t index_of(array a, const void *value)
 {
     return ((char *)value - (char *)a.start) / a.width;
 }
