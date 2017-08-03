@@ -158,7 +158,7 @@ void Clp_setLogLevel(Clp_Simplex *model, int value)
 int Clp_initialSolve(Clp_Simplex *model)
 {
     Clp_Wrapper *m = model;
-    standard_constraint sc_objective = {0, 0, 0};
+    point origin = {0, 0}, sc_objective = {0, 0};
     line objective;
     array cs = make_array(m->rows_upper.length + m->rows_lower.length +
                           m->cols_upper.length + m->cols_lower.length, constraint);
@@ -179,11 +179,11 @@ int Clp_initialSolve(Clp_Simplex *model)
 
     i = make_iter(&m->cols_upper);
     for(sc = cur(i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
-        sc_objective.a1 += sc->a1;
-        sc_objective.a2 += sc->a2;
+        sc_objective.x += sc->a1;
+        sc_objective.y += sc->a2;
     }
 
-    objective = from_standard(sc_objective).f;
+    objective = from_points(origin, sc_objective);
 
     optimize(objective, cs);
 
