@@ -18,12 +18,12 @@ static int is_not_parallel(const pair *p)
     return !parallel(p->c1->f, p->c2->f);
 }
 
-static void pair_outer(const pair *p, constraint **c)
+static void pair_inner(const pair *p, constraint **c)
 {
     assert(p->c1->ord == p->c2->ord);
     *c = (p->c1->ord == leq) ?
-            (p->c1->f.b > p->c2->f.b ? p->c1 : p->c2) :
-            (p->c1->f.b < p->c2->f.b ? p->c1 : p->c2);
+            (p->c1->f.b < p->c2->f.b ? p->c1 : p->c2) :
+            (p->c1->f.b > p->c2->f.b ? p->c1 : p->c2);
 }
 
 static void pair_intersect_x(const pair *p, double *x)
@@ -101,7 +101,6 @@ solution optimize(line objective, array constraints)
     while(result.feasibility == unknown) {
         array pairs = make_pairs(*set);
         array parallels = partition(is_not_parallel, &pairs);
-        array outers = map(pair_outer, parallels, constraint*);
         array xs = map(pair_intersect_x, pairs, double);
         double median = median = find_median(&xs);
         array upys = map1(apply_median, &median, upwards, double);
@@ -146,15 +145,16 @@ solution optimize(line objective, array constraints)
             }
 
             if(result.feasibility == unknown) {
+                array inners = map(pair_inner, parallels, constraint*);
                 if(direction == left_of_median) {
                 } else {
                 }
+                free_array(&inners);
             }
         }
         free_array(&dnys);
         free_array(&upys);
         free_array(&xs);
-        free_array(&outers);
         free_array(&parallels);
         free_array(&pairs);
         set = set == &downwards ? &upwards : &downwards;
