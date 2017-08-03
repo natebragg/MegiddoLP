@@ -205,10 +205,21 @@ solution optimize(line objective, array constraints)
         free_array(&parallels);
         free_array(&pairs);
         free_array(&leftover);
-        set = set == &downwards ? &upwards : &downwards;
+        {
+            array *alt = set == &downwards ? &upwards : &downwards;
+            set = (alt->length > 1) ? alt : set;
+        }
+        if (upwards.length == 1 && downwards.length == 1) {
+            constraint u = *index(upwards, 0, constraint);
+            constraint d = *index(downwards, 0, constraint);
+            result.feasibility = feasible;
+            result.optimum = intersect(u.f, d.f);
+        }
     }
 
     free_array(&downwards);
     free_array(&upwards);
+    theta.theta *= -1;
+    result.optimum = rotate_point(theta, result.optimum);
     return result;
 }
