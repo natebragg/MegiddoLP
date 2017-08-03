@@ -31,7 +31,7 @@ static void pair_intersect_x(const pair *p, double *x)
     *x = intersect(p->c1->f, p->c2->f).x;
 }
 
-static array make_pairs(array a)
+static array make_pairs(array a, array *leftover)
 {
     array pairs = make_array(a.length, pair);
     iter i = make_iter(&a);
@@ -41,6 +41,9 @@ static array make_pairs(array a)
         pair *p = grow(&pairs, pair);
         p->c1 = c1;
         p->c2 = c2;
+    }
+    if(c1) {
+        *grow(leftover, constraint*) = c1;
     }
     return pairs;
 }
@@ -115,9 +118,9 @@ static void index_of_(const array *a, const double **value, size_t *out)
     *out = index_of(*a, *value);
 }
 
-static void append(array *acc, const constraint *c)
+static void append(array *acc, const constraint **c)
 {
-    *grow(acc, constraint) = *c;
+    *grow(acc, constraint) = **c;
 }
 
 solution optimize(line objective, array constraints)
@@ -135,7 +138,8 @@ solution optimize(line objective, array constraints)
     upwards = clone(&constraints);
     set = &downwards;
     while(result.feasibility == unknown) {
-        array pairs = make_pairs(*set);
+        array leftover = make_array(1, constraint*);
+        array pairs = make_pairs(*set, &leftover);
         array parallels = partition(is_not_parallel, &pairs);
         array xs = map(pair_intersect_x, pairs, double);
         double median = median = find_median(&xs);
@@ -188,10 +192,11 @@ solution optimize(line objective, array constraints)
                 f.opt_dir = opt_dir;
                 f.outer_is = set == &downwards ? below : above;
                 foldl1(discard_outer, &f, &culled, pairs, array);
+                foldl(append, &culled, leftover, array);
+                foldl(append, &culled, inners, array);
+                free_array(&inners);
                 free_array(set);
                 *set = culled;
-                foldl(append, set, inners, array);
-                free_array(&inners);
             }
         }
         free_array(&dnys);
@@ -199,6 +204,7 @@ solution optimize(line objective, array constraints)
         free_array(&xs);
         free_array(&parallels);
         free_array(&pairs);
+        free_array(&leftover);
         set = set == &downwards ? &upwards : &downwards;
     }
 
