@@ -15,6 +15,11 @@ typedef struct constraint {
     line f;
 } constraint;
 
+typedef struct pair {
+    constraint *c1;
+    constraint *c2;
+} pair;
+
 constraint from_standard(standard_constraint);
 constraint rotate_constraint(radians, constraint);
 

@@ -13,11 +13,13 @@ TESTS = $(OUTDIR)/geo \
 TARGET = $(OUTDIR)/libmegiddolp.a
 OBJS = $(OUTDIR)/clp_wrapper.o \
        $(OUTDIR)/constraint.o \
+       $(OUTDIR)/logger.o \
        $(OUTDIR)/median.o \
        $(OUTDIR)/megiddo.o \
        $(OUTDIR)/geo.o
 HDRS = $(INCDIR)/clp_wrapper.h \
        $(INCDIR)/constraint.h \
+       $(INCDIR)/logger.h \
        $(INCDIR)/median.h \
        $(INCDIR)/megiddo.h \
        $(INCDIR)/array.h \

@@ -2,6 +2,7 @@
 #include "megiddo.h"
 #include "constraint.h"
 #include "array.h"
+#include "logger.h"
 
 #include <stdlib.h>
 
@@ -155,9 +156,24 @@ void Clp_setLogLevel(Clp_Simplex *model, int value)
     ((Clp_Wrapper*)model)->log_level = value;
 }
 
+static logger make_logger(Clp_Wrapper *m)
+{
+    logger l;
+    switch(m->log_level) {
+    case Final:
+    case Factorizations: l.level = result; break;
+    case PlusABitMore:   l.level = position; break;
+    case Verbose:        l.level = equations; break;
+    case None:
+    default:             l.level = off; break;
+    }
+    return l;
+}
+
 int Clp_initialSolve(Clp_Simplex *model)
 {
     Clp_Wrapper *m = model;
+    logger l = make_logger(m);
     point origin = {0, 0}, sc_objective = {0, 0};
     line objective;
     array cs = make_array(m->rows_upper.length + m->rows_lower.length +
@@ -172,6 +188,7 @@ int Clp_initialSolve(Clp_Simplex *model)
     scs[3] = &m->cols_lower;
     for(; j < 4; ++j) {
         i = make_iter(scs[j]);
+        log_standard_constraint_array(&l, *scs[j], "rows[%d]:", j);
         for(sc = cur(i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
             *grow(&cs, constraint) = from_standard(*sc);
         }
@@ -185,7 +202,9 @@ int Clp_initialSolve(Clp_Simplex *model)
 
     objective = from_points(origin, sc_objective);
 
-    optimize(objective, cs);
+    log_position(&l, "objective: {%f, %f}", sc_objective.x, sc_objective.y);
+    log_line(&l, objective, "        -> ");
+    optimize(&l, objective, cs);
 
     free_array(&cs);
 

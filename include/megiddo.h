@@ -3,12 +3,13 @@
 
 #include "constraint.h"
 #include "array.h"
+#include "logger.h"
 
 typedef struct solution {
     enum {unknown, feasible, infeasible} feasibility;
     point optimum;
 } solution;
 
-solution optimize(line objective, array constraints);
+solution optimize(const logger *, line objective, array constraints);
 
 #endif

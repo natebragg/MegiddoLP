@@ -1,12 +1,8 @@
 #include "megiddo.h"
 #include "median.h"
+#include "logger.h"
 
 #include <stdlib.h>
-
-typedef struct pair {
-    constraint *c1;
-    constraint *c2;
-} pair;
 
 static int is_pointing_up(const constraint *c)
 {
@@ -123,17 +119,18 @@ static void append(array *acc, const constraint **c)
     *grow(acc, constraint) = **c;
 }
 
-solution optimize(line objective, array constraints)
+solution optimize(const logger *l, line objective, array constraints)
 {
     solution result = {unknown, {0, 0}};
     radians theta = angle_down(objective);
     array upwards, downwards, *set;
     iter i = make_iter(&constraints);
     constraint *c = NULL;
+    log_constraint_array(l, constraints, "unrotated:");
     for(c = cur(i, constraint); c; c = next(&i, constraint)) {
         *c = rotate_constraint(theta, *c);
     }
-
+    log_constraint_array(l, constraints, "rotated by %f:", theta.theta);
     downwards = partition(is_pointing_up, &constraints);
     upwards = clone(&constraints);
     set = &downwards;
@@ -150,7 +147,16 @@ solution optimize(line objective, array constraints)
         size_t min_concave = index_of(dnys, *foldl(idx_min, &min_tmp, dnys, double*));
         line max_convex_c = index(upwards, max_convex, constraint)->f;
         line min_concave_c = index(downwards, min_concave, constraint)->f;
+        log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
+        log_constraint_array(l, upwards, "\tupwards[%d]:", upwards.length);
+        log_constraint_array(l, downwards, "\tdownwards[%d]:", downwards.length);
+        log_double_array(l, xs, "\txs:\t");
+        log_position(l, "\tmedian:\t%f", median);
+        log_double_array(l, upys, "\tupys:\t");
+        log_double_array(l, dnys, "\tdnys:\t");
         if(parallel(max_convex_c, min_concave_c)) {
+            log_line(l, max_convex_c,  "infeasible: [%d] ", max_convex);
+            log_line(l, min_concave_c, "            [%d] ", min_concave);
             result.feasibility = infeasible;
         } else {
             direction opt_dir;
@@ -159,6 +165,7 @@ solution optimize(line objective, array constraints)
             double min_concave_y = *index(dnys, min_concave, double);
             if(max_convex_y > min_concave_y) {
                 /* the optimum lies in the direction of their intersection */
+                log_position(l, "not in feasible region");
                 opt_dir = median < where.x ? right_of_median : left_of_median;
             } else {
                 /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
@@ -167,17 +174,22 @@ solution optimize(line objective, array constraints)
                 double *s_tmp = NULL, *S_tmp = NULL;
                 double s_g = **foldl1(slope_min_at, &upwards, &s_tmp, cross_indexes, double*);
                 double S_g = **foldl1(slope_max_at, &upwards, &S_tmp, cross_indexes, double*);
+                log_double_ptr_array(l, cross_values, "\tcross_values:\t");
+                log_position(l, "IN feasible region; s_g=%f, S_g=%f", s_g, S_g);
                 if(s_g <= 0 && 0 <= S_g) {
+                    log_position(l, "optimum reached");
                     result.feasibility = feasible;
                     result.optimum.x = median;
                     result.optimum.y = max_convex_y;
                 } else if(max_convex_y < min_concave_y) {
                     /* and the optimum lies in the opposite direction of their intersection. */
+                    log_position(l, "feasible but not optimal");
                     opt_dir = where.x < median ? right_of_median : left_of_median;
                 } else {
                     /* the optimum lies to the side where min_concave_c > max_convex_c */
                     double right_concave_y = apply(median + 1, min_concave_c);
                     double right_convex_y = apply(median + 1, max_convex_c);
+                    log_position(l, "feasible but in a corner");
                     opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
                 }
                 free_array(&cross_indexes);
@@ -221,5 +233,6 @@ solution optimize(line objective, array constraints)
     free_array(&upwards);
     theta.theta *= -1;
     result.optimum = rotate_point(theta, result.optimum);
+    log_result(l, "%f %% %f", result.optimum.x, result.optimum.y);
     return result;
 }
