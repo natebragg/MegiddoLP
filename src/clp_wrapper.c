@@ -179,8 +179,8 @@ int Clp_initialSolve(Clp_Simplex *model)
 
     i = make_iter(&m->cols_upper);
     for(sc = cur(i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
-        sc_objective.x += sc->a1;
-        sc_objective.y += sc->a2;
+        sc_objective.y += sc->a1;
+        sc_objective.x += sc->a2;
     }
 
     objective = from_points(origin, sc_objective);

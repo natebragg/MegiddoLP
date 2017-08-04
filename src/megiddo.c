@@ -190,7 +190,7 @@ solution optimize(line objective, array constraints)
                 quadrant_filter f;
                 f.median = median;
                 f.opt_dir = opt_dir;
-                f.outer_is = set == &downwards ? below : above;
+                f.outer_is = set == &downwards ? above : below;
                 foldl1(discard_outer, &f, &culled, pairs, array);
                 foldl(append, &culled, leftover, array);
                 foldl(append, &culled, inners, array);
