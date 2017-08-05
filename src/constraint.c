@@ -1,15 +1,5 @@
 #include "constraint.h"
 
-constraint from_standard(standard_constraint s)
-{
-    constraint c;
-    c.ord = leq;
-    c.f.a1 = s.a1;
-    c.f.a2 = s.a2;
-    c.f.b = s.b;
-    return c;
-}
-
 constraint rotate_constraint(radians theta, constraint c)
 {
     line rotation = rotate_line(theta, c.f);

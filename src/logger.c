@@ -60,22 +60,6 @@ void log_constraint(const logger *l, const constraint *c, const char *heading, .
     }
 }
 
-void log_standard_constraint_array(const logger *l, array cs, const char *heading, ...)
-{
-    if(l->level >= equations) {
-        iter i = make_iter(&cs);
-        standard_constraint *sc = NULL;
-        va_list ap; 
-        va_start(ap, heading);
-        vprintf(heading, ap);
-        printf("\n");
-        va_end(ap);
-        for(sc = cur(i, standard_constraint); sc; sc = next(&i, standard_constraint)) {
-            printf("\t%f*y %s %f*x <= %f\n", sc->a1, sc->a2 < 0 ? "-" : "+", fabs(sc->a2), sc->b);
-        }
-    }
-}
-
 void log_constraint_array(const logger *l, array cs, const char *heading, ...)
 {
     if(l->level >= equations) {

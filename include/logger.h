@@ -12,7 +12,6 @@ void log_position(const logger *, const char *, ...);
 void log_result(const logger *, const char *, ...);
 void log_line(const logger *, line, const char *, ...);
 void log_constraint(const logger *, const constraint *, const char *, ...);
-void log_standard_constraint_array(const logger *, array, const char *, ...);
 void log_constraint_array(const logger *, array, const char *, ...);
 void log_pair_array(const logger *, array, const char *, ...);
 void log_double_array(const logger *, array, const char *, ...);
