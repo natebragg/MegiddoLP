@@ -31,6 +31,11 @@ static int less_than_candidate(const double *candidate, const double *v)
     return *v < *candidate;
 }
 
+static int equal_to_candidate(const double *candidate, const double *v)
+{
+    return *v == *candidate;
+}
+
 double find_rank(size_t r, array *a)
 {
     double result = 0;
@@ -39,20 +44,27 @@ double find_rank(size_t r, array *a)
         qsort(a->start, a->length, a->width, cmpx);
         result = *index(*a, r, double);
     } else {
-        array less = clone(a), geqs;
+        array less = clone(a), greater, eq;
         size_t pos = 0;
         double candidate = find_median_candidate(a);
-        geqs = partition1(less_than_candidate, &candidate, &less);
+        eq = partition1(less_than_candidate, &candidate, &less);
+        greater = partition1(equal_to_candidate, &candidate, &eq);
         pos = less.length;
         if(pos == r) {
             result = candidate;
         } else if (pos > r) {
             result = find_rank(r, &less);
         } else if (pos < r) {
-            result = find_rank(r - pos, &geqs);
+            r = r - pos;
+            if(eq.length > r) {
+                result = candidate;
+            } else {
+                result = find_rank(r - eq.length, &greater);
+            }
         }
         free_array(&less);
-        free_array(&geqs);
+        free_array(&eq);
+        free_array(&greater);
     }
     return result;
 }
