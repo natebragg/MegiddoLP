@@ -121,7 +121,7 @@ static void append(array *acc, const constraint **c)
     *grow(acc, constraint) = **c;
 }
 
-solution optimize(const logger *l, line objective, array constraints)
+solution optimize(const logger *l, point objective, array constraints)
 {
     solution result = {unknown, {0, 0}};
     radians theta = angle_down(objective);

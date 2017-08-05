@@ -10,6 +10,6 @@ typedef struct solution {
     point optimum;
 } solution;
 
-solution optimize(const logger *, line objective, array constraints);
+solution optimize(const logger *, point objective, array constraints);
 
 #endif

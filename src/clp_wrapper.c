@@ -184,8 +184,7 @@ int Clp_initialSolve(Clp_Simplex *model)
 {
     Clp_Wrapper *m = model;
     logger l = make_logger(m);
-    point origin = {0, 0}, sc_objective = {0, 0};
-    line objective;
+    point objective = {0, 0};
     solution optimum;
     array cs = make_array(m->rows_upper.length + m->rows_lower.length +
                           m->cols_upper.length + m->cols_lower.length, constraint);
@@ -207,14 +206,11 @@ int Clp_initialSolve(Clp_Simplex *model)
 
     i = make_iter(&m->cols_upper);
     for(c = cur(i, constraint); c; c = next(&i, constraint)) {
-        sc_objective.y += c->f.a1;
-        sc_objective.x += c->f.a2;
+        objective.y += c->f.a1;
+        objective.x += c->f.a2;
     }
 
-    objective = from_points(origin, sc_objective);
-
-    log_position(&l, "objective: {%f, %f}", sc_objective.x, sc_objective.y);
-    log_line(&l, objective, "        -> ");
+    log_position(&l, "objective: {%f, %f}", objective.x, objective.y);
     optimum = optimize(&l, objective, cs);
     free_array(&cs);
 

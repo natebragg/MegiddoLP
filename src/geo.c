@@ -43,19 +43,13 @@ line shift(line f, double weight, double bias)
     return f;
 }
 
-radians angle_down(line f)
+radians angle_down(point p)
 {
-    line orth = perpendicular(f);
-    point p = intersect(f, orth);
     radians theta;
     /* counterclockwise offset from 0 radians
        (right), the reference for atan, to down,
        the reference for Megiddo's algorithm. */
     const double offset = 3 * pi / 2;
-    if(p.y == 0 && p.x == 0) {
-        orth = shift(orth, 0.5, 1);
-        p = intersect(f, orth);
-    }
     theta.theta = offset - fmod(pi + atan2(p.y, p.x), pi);
     return theta;
 }

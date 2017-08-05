@@ -105,27 +105,27 @@ int test_intersect()
 int test_angle_down()
 {
     {
-        line f = {1, -1, 0};
+        point p = {1, 1};
         radians theta, expected;
         expected.theta = 5 * pi / 4;
 
-        theta = angle_down(f);
+        theta = angle_down(p);
         assert_within(theta.theta, expected.theta, epsilon);
     }
     {
-        line f = {2, -1, 0};
+        point p = {2, 1};
         radians theta, expected;
         expected.theta = 1.352416 * pi;
 
-        theta = angle_down(f);
+        theta = angle_down(p);
         assert_within(theta.theta, expected.theta, epsilon);
     }
     {
-        line f = {1, 1, 0};
+        point p = {1, -1};
         radians theta, expected;
         expected.theta = 3 * pi / 4;
 
-        theta = angle_down(f);
+        theta = angle_down(p);
         assert_within(theta.theta, expected.theta, epsilon);
     }
 

@@ -24,7 +24,7 @@ double apply(double, line);
 line from_points(point, point);
 line perpendicular(line);
 line shift(line, double, double);
-radians angle_down(line);
+radians angle_down(point);
 point rotate_point(radians, point);
 line rotate_line(radians, line);
 int parallel(line, line);
