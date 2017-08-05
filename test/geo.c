@@ -113,6 +113,14 @@ int test_angle_down()
         assert_within(theta.theta, expected.theta, epsilon);
     }
     {
+        line f = {2, -1, 0};
+        radians theta, expected;
+        expected.theta = 1.352416 * pi;
+
+        theta = angle_down(f);
+        assert_within(theta.theta, expected.theta, epsilon);
+    }
+    {
         line f = {1, 1, 0};
         radians theta, expected;
         expected.theta = 3 * pi / 4;
