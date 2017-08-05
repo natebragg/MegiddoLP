@@ -66,16 +66,18 @@ static void equal_to(const double *lhs, array *accum, const double *rhs)
     }
 }
 
-static void slope_max_at(const array *upwards, double **acc, const size_t *idx)
+static void slope_max_at(const array *upwards, double *acc, const size_t *idx)
 {
-    double *slope = &index(*upwards, *idx, constraint)->f.a;
-    *acc = (*acc == NULL || **acc < *slope) ? slope : *acc;
+    line f = index(*upwards, *idx, constraint)->f;
+    double slope = f.a1 == 0 ? -1/f.a1 : -1 * f.a2 / f.a1;
+    *acc = *acc < slope ? slope : *acc;
 }
 
-static void slope_min_at(const array *upwards, double **acc, const size_t *idx)
+static void slope_min_at(const array *upwards, double *acc, const size_t *idx)
 {
-    double *slope = &index(*upwards, *idx, constraint)->f.a;
-    *acc = (*acc == NULL || **acc > *slope) ? slope : *acc;
+    line f = index(*upwards, *idx, constraint)->f;
+    double slope = f.a1 == 0 ? -1/f.a1 : -1 * f.a2 / f.a1;
+    *acc = *acc > slope ? slope : *acc;
 }
 
 typedef enum direction {
@@ -100,9 +102,9 @@ static void discard_outer(const quadrant_filter *qf, array *acc, const pair *p)
         *grow(acc, constraint) = *p->c1;
         *grow(acc, constraint) = *p->c2;
     } else {
-        double epsilon = (qf->opt_dir == left_of_median) ? -1 : 1;
-        double opt_side_y1 = apply(qf->median + epsilon, p->c1->f);
-        double opt_side_y2 = apply(qf->median + epsilon, p->c2->f);
+        double delta = (qf->opt_dir == left_of_median) ? -1 : 1;
+        double opt_side_y1 = apply(qf->median + delta, p->c1->f);
+        double opt_side_y2 = apply(qf->median + delta, p->c2->f);
         *grow(acc, constraint) = (qf->outer_is == below ?
                                     (opt_side_y1 > opt_side_y2) :
                                     (opt_side_y1 < opt_side_y2)) ? *p->c1 : *p->c2;
@@ -148,12 +150,12 @@ solution optimize(const logger *l, line objective, array constraints)
         line max_convex_c = index(upwards, max_convex, constraint)->f;
         line min_concave_c = index(downwards, min_concave, constraint)->f;
         log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
-        log_constraint_array(l, upwards, "\tupwards[%d]:", upwards.length);
-        log_constraint_array(l, downwards, "\tdownwards[%d]:", downwards.length);
-        log_double_array(l, xs, "\txs:\t");
-        log_position(l, "\tmedian:\t%f", median);
-        log_double_array(l, upys, "\tupys:\t");
-        log_double_array(l, dnys, "\tdnys:\t");
+        log_constraint_array(l, upwards, "upwards[%d]:", upwards.length);
+        log_constraint_array(l, downwards, "downwards[%d]:", downwards.length);
+        log_double_array(l, xs, "xs:\t");
+        log_position(l, "median:\t%f", median);
+        log_double_array(l, upys, "upys:\t");
+        log_double_array(l, dnys, "dnys:\t");
         if(parallel(max_convex_c, min_concave_c)) {
             log_line(l, max_convex_c,  "infeasible: [%d] ", max_convex);
             log_line(l, min_concave_c, "            [%d] ", min_concave);
@@ -171,10 +173,10 @@ solution optimize(const logger *l, line objective, array constraints)
                 /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
                 array cross_values = make_array(1, double*);
                 array cross_indexes = map1(index_of_, &upys, *foldl1(equal_to, &max_convex_y, &cross_values, upys, array), size_t);
-                double *s_tmp = NULL, *S_tmp = NULL;
-                double s_g = **foldl1(slope_min_at, &upwards, &s_tmp, cross_indexes, double*);
-                double S_g = **foldl1(slope_max_at, &upwards, &S_tmp, cross_indexes, double*);
-                log_double_ptr_array(l, cross_values, "\tcross_values:\t");
+                double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
+                double s_g = *foldl1(slope_min_at, &upwards, &s_tmp, cross_indexes, double);
+                double S_g = *foldl1(slope_max_at, &upwards, &S_tmp, cross_indexes, double);
+                log_double_ptr_array(l, cross_values, "cross_values:\t");
                 log_position(l, "IN feasible region; s_g=%f, S_g=%f", s_g, S_g);
                 if(s_g <= 0 && 0 <= S_g) {
                     log_position(l, "optimum reached");

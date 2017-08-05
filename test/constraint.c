@@ -5,45 +5,33 @@ int test_rotate_constraint()
 {
     const double pi = 3.14159265358979323846;
     {
-        constraint c, c_;
+        constraint c = {leq, {1, 1, 0}}, c_;
         radians theta;
         theta.theta = pi/2;
-        c.ord = leq;
-        c.f.a = -1;
-        c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
         assert_eq(c_.ord, leq);
     }
     {
-        constraint c, c_;
+        constraint c = {geq, {1, 1, 0}}, c_;
         radians theta;
         theta.theta = pi/2;
-        c.ord = geq;
-        c.f.a = -1;
-        c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
         assert_eq(c_.ord, geq);
     }
     {
-        constraint c, c_;
+        constraint c = {leq, {1, -1, 0}}, c_;
         radians theta;
         theta.theta = pi/2;
-        c.ord = leq;
-        c.f.a = 1;
-        c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
         assert_eq(c_.ord, geq);
     }
     {
-        constraint c, c_;
+        constraint c = {geq, {1, -1, 0}}, c_;
         radians theta;
         theta.theta = pi/2;
-        c.ord = geq;
-        c.f.a = 1;
-        c.f.b = 0;
 
         c_ = rotate_constraint(theta, c);
         assert_eq(c_.ord, leq);

@@ -8,43 +8,34 @@ const double epsilon = 0.00001;
 int test_rotate_line()
 {
     {
-        line f, g, expected;
+        line f = {1, 1, 0}, g;
+        line expected = {1, -1, 0};
         radians theta;
         theta.theta = pi/2;
-        f.a = -1;
-        f.b = 0;
-        expected.a = 1;
-        expected.b = 0;
 
         g = rotate_line(theta, f);
-        assert_within(g.a, expected.a, epsilon);
-        assert_within(g.b, expected.b, epsilon);
+        assert_within(g.a2 / g.a1, expected.a2 / expected.a1, epsilon);
+        assert_within(g.b / g.a1, expected.b / expected.a1, epsilon);
     }
     {
-        line f, g, expected;
+        line f = {1, 0, 0}, g;
+        line expected = {1, 0, 0};
         radians theta;
         theta.theta = pi;
-        f.a = 0;
-        f.b = 0;
-        expected.a = 0;
-        expected.b = 0;
 
         g = rotate_line(theta, f);
-        assert_within(g.a, expected.a, epsilon);
-        assert_within(g.b, expected.b, epsilon);
+        assert_within(g.a2 / g.a1, expected.a2 / expected.a1, epsilon);
+        assert_within(g.b / g.a1, expected.b / expected.a1, epsilon);
     }
     {
-        line f, g, expected;
+        line f = {1, -0.5, 2}, g;
+        line expected = {1, 0.867295, -2.367920};
         radians theta;
         theta.theta = 5 * pi / 8;
-        f.a = 0.5;
-        f.b = 2;
-        expected.a = -0.867295;
-        expected.b = -2.367920;
 
         g = rotate_line(theta, f);
-        assert_within(g.a, expected.a, epsilon);
-        assert_within(g.b, expected.b, epsilon);
+        assert_within(g.a2 / g.a1, expected.a2 / expected.a1, epsilon);
+        assert_within(g.b / g.a1, expected.b / expected.a1, epsilon);
     }
 
     return 0;
@@ -85,12 +76,9 @@ int test_rotate_point()
 int test_intersect()
 {
     {
-        line f, g;
+        line f = {1, -2, 1};
+        line g = {1, -1, 0};
         point p, expected;
-        f.a = 2;
-        f.b = 1;
-        g.a = 1;
-        g.b = 0;
         expected.x = -1;
         expected.y = -1;
 
@@ -100,12 +88,9 @@ int test_intersect()
     }
 
     {
-        line f, g;
+        line f = {1, -100, -100};
+        line g = {1, 0.01, 0.01};
         point p, expected;
-        f.a = 100;
-        f.b = -100;
-        g.a = -0.01;
-        g.b = 0.01;
         expected.x = 1;
         expected.y = 0;
 
@@ -120,20 +105,16 @@ int test_intersect()
 int test_angle_down()
 {
     {
-        line f;
+        line f = {1, -1, 0};
         radians theta, expected;
-        f.a = 1;
-        f.b = 0;
         expected.theta = 5 * pi / 4;
 
         theta = angle_down(f);
         assert_within(theta.theta, expected.theta, epsilon);
     }
     {
-        line f;
+        line f = {1, 1, 0};
         radians theta, expected;
-        f.a = -1;
-        f.b = 0;
         expected.theta = 3 * pi / 4;
 
         theta = angle_down(f);
