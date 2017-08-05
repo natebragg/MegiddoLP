@@ -140,7 +140,7 @@ solution optimize(const logger *l, line objective, array constraints)
         array leftover = make_array(1, constraint*);
         array pairs = make_pairs(*set, &leftover);
         array parallels = partition(is_not_parallel, &pairs);
-        {
+        if(pairs.length > 0) {
             array xs = map(pair_intersect_x, pairs, double);
             double median = median = find_median(&xs);
             array upys = map1(apply_median, &median, upwards, double);
@@ -217,20 +217,26 @@ solution optimize(const logger *l, line objective, array constraints)
             free_array(&dnys);
             free_array(&upys);
             free_array(&xs);
+        } else {
+            array inners = map(pair_inner, parallels, constraint*);
+            free_array(set);
+            *set = make_array(inners.length, constraint);
+            foldl(append, set, inners, array);
+            free_array(&inners);
         }
         free_array(&parallels);
         free_array(&pairs);
         free_array(&leftover);
-        {
+        if(result.feasibility == unknown) {
             array *alt = set == &downwards ? &upwards : &downwards;
             set = (alt->length > 1) ? alt : set;
-        }
             if (upwards.length == 1 && downwards.length == 1) {
                 constraint u = *index(upwards, 0, constraint);
                 constraint d = *index(downwards, 0, constraint);
                 result.feasibility = feasible;
                 result.optimum = intersect(u.f, d.f);
             }
+        }
     }
 
     free_array(&downwards);
