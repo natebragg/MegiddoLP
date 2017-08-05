@@ -52,6 +52,8 @@ typedef struct Clp_Wrapper {
     array rows_lower;
     array cols_upper;
     array cols_lower;
+    array row_activity;
+    array col_solution;
 } Clp_Wrapper;
 
 Clp_Simplex *Clp_newModel()
@@ -62,8 +64,10 @@ Clp_Simplex *Clp_newModel()
     Clp_setOptimizationDirection(model, Maximize);
     model->rows_upper = make_array(4, standard_constraint);
     model->rows_lower = make_array(4, standard_constraint);
-    model->cols_upper = make_array(4, standard_constraint);
-    model->cols_lower = make_array(4, standard_constraint);
+    model->cols_upper = make_array(2, standard_constraint);
+    model->cols_lower = make_array(2, standard_constraint);
+    model->row_activity = make_array(4, double);
+    model->col_solution = make_array(2, double);
     return model;
 }
 
@@ -74,6 +78,8 @@ void Clp_deleteModel(Clp_Simplex *model)
     free_array(&m->rows_lower);
     free_array(&m->cols_upper);
     free_array(&m->cols_lower);
+    free_array(&m->row_activity);
+    free_array(&m->col_solution);
     free(model);
 }
 
@@ -176,6 +182,7 @@ int Clp_initialSolve(Clp_Simplex *model)
     logger l = make_logger(m);
     point origin = {0, 0}, sc_objective = {0, 0};
     line objective;
+    solution optimum;
     array cs = make_array(m->rows_upper.length + m->rows_lower.length +
                           m->cols_upper.length + m->cols_lower.length, constraint);
     array* scs[4];
@@ -204,9 +211,31 @@ int Clp_initialSolve(Clp_Simplex *model)
 
     log_position(&l, "objective: {%f, %f}", sc_objective.x, sc_objective.y);
     log_line(&l, objective, "        -> ");
-    optimize(&l, objective, cs);
-
+    optimum = optimize(&l, objective, cs);
     free_array(&cs);
+
+    while(m->col_solution.length < m->cols_upper.length) {
+        grow(&m->col_solution, double);
+    }
+    if(m->cols_upper.length > 0) {
+        *index(m->col_solution, 0, double) = optimum.optimum.y;
+    }
+    if(m->cols_upper.length > 1) {
+        *index(m->col_solution, 1, double) = optimum.optimum.x;
+    }
+    while(m->row_activity.length < m->rows_upper.length) {
+        grow(&m->row_activity, double);
+    }
+    for(j = 0; j < m->rows_upper.length; ++j) {
+        standard_constraint *sc = index(m->rows_upper, j, standard_constraint);
+        *index(m->row_activity, j, double) = sc->a1 * optimum.optimum.y + sc->a2 * optimum.optimum.x;
+    }
+    switch(optimum.feasibility) {
+    case unknown:    m->status = Unknown; break;
+    case feasible:   m->status = Optimal; break;
+    case infeasible: m->status = PrimalInfeasible; break;
+    default:          m->status = Errors; break;
+    }
 
     return m->status;
 }
@@ -261,10 +290,10 @@ int Clp_isIterationLimitReached(Clp_Simplex *model)
 
 double *Clp_getRowActivity(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->row_activity.start;
 }
 
 double *Clp_getColSolution(Clp_Simplex *model)
 {
-    return 0;
+    return ((Clp_Wrapper*)model)->col_solution.start;
 }
