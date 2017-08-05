@@ -140,82 +140,84 @@ solution optimize(const logger *l, line objective, array constraints)
         array leftover = make_array(1, constraint*);
         array pairs = make_pairs(*set, &leftover);
         array parallels = partition(is_not_parallel, &pairs);
-        array xs = map(pair_intersect_x, pairs, double);
-        double median = median = find_median(&xs);
-        array upys = map1(apply_median, &median, upwards, double);
-        array dnys = map1(apply_median, &median, downwards, double);
-        double *max_tmp = NULL, *min_tmp = NULL;
-        size_t max_convex = index_of(upys, *foldl(idx_max, &max_tmp, upys, double*));
-        size_t min_concave = index_of(dnys, *foldl(idx_min, &min_tmp, dnys, double*));
-        line max_convex_c = index(upwards, max_convex, constraint)->f;
-        line min_concave_c = index(downwards, min_concave, constraint)->f;
-        log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
-        log_constraint_array(l, upwards, "upwards[%d]:", upwards.length);
-        log_constraint_array(l, downwards, "downwards[%d]:", downwards.length);
-        log_double_array(l, xs, "xs:\t");
-        log_position(l, "median:\t%f", median);
-        log_double_array(l, upys, "upys:\t");
-        log_double_array(l, dnys, "dnys:\t");
-        if(parallel(max_convex_c, min_concave_c)) {
-            log_line(l, max_convex_c,  "infeasible: [%d] ", max_convex);
-            log_line(l, min_concave_c, "            [%d] ", min_concave);
-            result.feasibility = infeasible;
-        } else {
-            direction opt_dir;
-            point where = intersect(max_convex_c, min_concave_c);
-            double max_convex_y = *index(upys, max_convex, double);
-            double min_concave_y = *index(dnys, min_concave, double);
-            if(max_convex_y > min_concave_y) {
-                /* the optimum lies in the direction of their intersection */
-                log_position(l, "not in feasible region");
-                opt_dir = median < where.x ? right_of_median : left_of_median;
+        {
+            array xs = map(pair_intersect_x, pairs, double);
+            double median = median = find_median(&xs);
+            array upys = map1(apply_median, &median, upwards, double);
+            array dnys = map1(apply_median, &median, downwards, double);
+            double *max_tmp = NULL, *min_tmp = NULL;
+            size_t max_convex = index_of(upys, *foldl(idx_max, &max_tmp, upys, double*));
+            size_t min_concave = index_of(dnys, *foldl(idx_min, &min_tmp, dnys, double*));
+            line max_convex_c = index(upwards, max_convex, constraint)->f;
+            line min_concave_c = index(downwards, min_concave, constraint)->f;
+            log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
+            log_constraint_array(l, upwards, "upwards[%d]:", upwards.length);
+            log_constraint_array(l, downwards, "downwards[%d]:", downwards.length);
+            log_double_array(l, xs, "xs:\t");
+            log_position(l, "median:\t%f", median);
+            log_double_array(l, upys, "upys:\t");
+            log_double_array(l, dnys, "dnys:\t");
+            if(parallel(max_convex_c, min_concave_c)) {
+                log_line(l, max_convex_c,  "infeasible: [%d] ", max_convex);
+                log_line(l, min_concave_c, "            [%d] ", min_concave);
+                result.feasibility = infeasible;
             } else {
-                /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
-                array cross_values = make_array(1, double*);
-                array cross_indexes = map1(index_of_, &upys, *foldl1(equal_to, &max_convex_y, &cross_values, upys, array), size_t);
-                double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
-                double s_g = *foldl1(slope_min_at, &upwards, &s_tmp, cross_indexes, double);
-                double S_g = *foldl1(slope_max_at, &upwards, &S_tmp, cross_indexes, double);
-                log_double_ptr_array(l, cross_values, "cross_values:\t");
-                log_position(l, "IN feasible region; s_g=%f, S_g=%f", s_g, S_g);
-                if(s_g <= 0 && 0 <= S_g) {
-                    log_position(l, "optimum reached");
-                    result.feasibility = feasible;
-                    result.optimum.x = median;
-                    result.optimum.y = max_convex_y;
-                } else if(max_convex_y < min_concave_y) {
-                    /* and the optimum lies in the opposite direction of their intersection. */
-                    log_position(l, "feasible but not optimal");
-                    opt_dir = where.x < median ? right_of_median : left_of_median;
+                direction opt_dir;
+                point where = intersect(max_convex_c, min_concave_c);
+                double max_convex_y = *index(upys, max_convex, double);
+                double min_concave_y = *index(dnys, min_concave, double);
+                if(max_convex_y > min_concave_y) {
+                    /* the optimum lies in the direction of their intersection */
+                    log_position(l, "not in feasible region");
+                    opt_dir = median < where.x ? right_of_median : left_of_median;
                 } else {
-                    /* the optimum lies to the side where min_concave_c > max_convex_c */
-                    double right_concave_y = apply(median + 1, min_concave_c);
-                    double right_convex_y = apply(median + 1, max_convex_c);
-                    log_position(l, "feasible but in a corner");
-                    opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
+                    /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
+                    array cross_values = make_array(1, double*);
+                    array cross_indexes = map1(index_of_, &upys, *foldl1(equal_to, &max_convex_y, &cross_values, upys, array), size_t);
+                    double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
+                    double s_g = *foldl1(slope_min_at, &upwards, &s_tmp, cross_indexes, double);
+                    double S_g = *foldl1(slope_max_at, &upwards, &S_tmp, cross_indexes, double);
+                    log_double_ptr_array(l, cross_values, "cross_values:\t");
+                    log_position(l, "IN feasible region; s_g=%f, S_g=%f", s_g, S_g);
+                    if(s_g <= 0 && 0 <= S_g) {
+                        log_position(l, "optimum reached");
+                        result.feasibility = feasible;
+                        result.optimum.x = median;
+                        result.optimum.y = max_convex_y;
+                    } else if(max_convex_y < min_concave_y) {
+                        /* and the optimum lies in the opposite direction of their intersection. */
+                        log_position(l, "feasible but not optimal");
+                        opt_dir = where.x < median ? right_of_median : left_of_median;
+                    } else {
+                        /* the optimum lies to the side where min_concave_c > max_convex_c */
+                        double right_concave_y = apply(median + 1, min_concave_c);
+                        double right_convex_y = apply(median + 1, max_convex_c);
+                        log_position(l, "feasible but in a corner");
+                        opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
+                    }
+                    free_array(&cross_indexes);
+                    free_array(&cross_values);
                 }
-                free_array(&cross_indexes);
-                free_array(&cross_values);
-            }
 
-            if(result.feasibility == unknown) {
-                array inners = map(pair_inner, parallels, constraint*);
-                array culled = make_array(set->length, constraint);
-                quadrant_filter f;
-                f.median = median;
-                f.opt_dir = opt_dir;
-                f.outer_is = set == &downwards ? above : below;
-                foldl1(discard_outer, &f, &culled, pairs, array);
-                foldl(append, &culled, leftover, array);
-                foldl(append, &culled, inners, array);
-                free_array(&inners);
-                free_array(set);
-                *set = culled;
+                if(result.feasibility == unknown) {
+                    array inners = map(pair_inner, parallels, constraint*);
+                    array culled = make_array(set->length, constraint);
+                    quadrant_filter f;
+                    f.median = median;
+                    f.opt_dir = opt_dir;
+                    f.outer_is = set == &downwards ? above : below;
+                    foldl1(discard_outer, &f, &culled, pairs, array);
+                    foldl(append, &culled, leftover, array);
+                    foldl(append, &culled, inners, array);
+                    free_array(&inners);
+                    free_array(set);
+                    *set = culled;
+                }
             }
+            free_array(&dnys);
+            free_array(&upys);
+            free_array(&xs);
         }
-        free_array(&dnys);
-        free_array(&upys);
-        free_array(&xs);
         free_array(&parallels);
         free_array(&pairs);
         free_array(&leftover);
@@ -223,12 +225,12 @@ solution optimize(const logger *l, line objective, array constraints)
             array *alt = set == &downwards ? &upwards : &downwards;
             set = (alt->length > 1) ? alt : set;
         }
-        if (upwards.length == 1 && downwards.length == 1) {
-            constraint u = *index(upwards, 0, constraint);
-            constraint d = *index(downwards, 0, constraint);
-            result.feasibility = feasible;
-            result.optimum = intersect(u.f, d.f);
-        }
+            if (upwards.length == 1 && downwards.length == 1) {
+                constraint u = *index(upwards, 0, constraint);
+                constraint d = *index(downwards, 0, constraint);
+                result.feasibility = feasible;
+                result.optimum = intersect(u.f, d.f);
+            }
     }
 
     free_array(&downwards);
