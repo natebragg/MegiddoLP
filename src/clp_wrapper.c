@@ -138,6 +138,8 @@ void Clp_addColumns(Clp_Simplex *model, int number,
                 if(rows[j] >= 0 && rows[j] <= m->rows_upper.length) {
                     constraint *row = index(m->rows_upper, rows[j], constraint);
                     *(col_len + i == 0 ? &row->f.a1 : &row->f.a2) = elements[j];
+                    row = index(m->rows_lower, rows[j], constraint);
+                    *(col_len + i == 0 ? &row->f.a1 : &row->f.a2) = -elements[j];
                 }
             }
         }

@@ -17,7 +17,7 @@ void input_by_columns(Clp_Simplex *model)
     /* Regular */
     {
         double columnLower = 0.0;
-        double columnUpper = DBL_MAX;
+        double columnUpper = FLT_MAX;
         double objective = 1.0;
         int columnStarts[2] = {0, num_rows};
         int rows[num_rows] = {0, 1, 2, 3, 4};
@@ -28,7 +28,7 @@ void input_by_columns(Clp_Simplex *model)
     /* Special */
     {
         double columnLower = 0.0;
-        double columnUpper = DBL_MAX;
+        double columnUpper = FLT_MAX;
         double objective = 2.0;
         int columnStarts[2] = {0, num_rows};
         int rows[num_rows] = {0, 1, 2, 3, 4};
