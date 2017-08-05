@@ -44,7 +44,7 @@ void input_by_rows(Clp_Simplex *model)
     {
         /*                              Regular  Special */
         double columnLower[num_cols] = {    0.0,     0.0};
-        double columnUpper[num_cols] = {DBL_MAX, DBL_MAX};
+        double columnUpper[num_cols] = {FLT_MAX, FLT_MAX};
         double objective[num_cols]   = {    1.0,     2.0};
         Clp_addColumns(model, num_cols, columnLower, columnUpper, objective, NULL, NULL, NULL);
     }

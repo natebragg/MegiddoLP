@@ -15,7 +15,7 @@ line make_positive(line f)
 
 double apply(double x, line f)
 {
-     return (-1 * f.a2 * x + f.b)/f.a1;
+    return (-1 * f.a2 * x + f.b)/f.a1;
 }
 
 line from_points(point p, point q)
@@ -36,9 +36,10 @@ line perpendicular(line f)
     return make_positive(g);
 }
 
-line shift(line f, double delta)
+line shift(line f, double weight, double bias)
 {
-    f.b += delta;
+    f.b *= weight;
+    f.b += bias;
     return f;
 }
 
@@ -66,7 +67,7 @@ point rotate_point(radians theta, point p)
 line rotate_line(radians theta, line f)
 {
     line orth1 = perpendicular(f);
-    line orth2 = shift(orth1, 1);
+    line orth2 = shift(orth1, 0.5, 1);
     point p = rotate_point(theta, intersect(f, orth1));
     point q = rotate_point(theta, intersect(f, orth2));
     return from_points(p, q);

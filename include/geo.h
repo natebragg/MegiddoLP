@@ -23,7 +23,7 @@ extern const double pi;
 double apply(double, line);
 line from_points(point, point);
 line perpendicular(line);
-line shift(line, double);
+line shift(line, double, double);
 radians angle_down(line);
 point rotate_point(radians, point);
 line rotate_line(radians, line);
