@@ -150,6 +150,8 @@ solution optimize(const logger *l, point objective, array constraints)
             size_t min_concave = index_of(dnys, *foldl(idx_min, &min_tmp, dnys, double*));
             line max_convex_c = index(upwards, max_convex, constraint)->f;
             line min_concave_c = index(downwards, min_concave, constraint)->f;
+            double max_convex_y = *index(upys, max_convex, double);
+            double min_concave_y = *index(dnys, min_concave, double);
             log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
             log_constraint_array(l, upwards, "upwards[%d]:", upwards.length);
             log_constraint_array(l, downwards, "downwards[%d]:", downwards.length);
@@ -157,15 +159,13 @@ solution optimize(const logger *l, point objective, array constraints)
             log_position(l, "median:\t%f", median);
             log_double_array(l, upys, "upys:\t");
             log_double_array(l, dnys, "dnys:\t");
-            if(parallel(max_convex_c, min_concave_c)) {
+            if(max_convex_y > min_concave_y && parallel(max_convex_c, min_concave_c)) {
                 log_line(l, max_convex_c,  "infeasible: [%d] ", max_convex);
                 log_line(l, min_concave_c, "            [%d] ", min_concave);
                 result.feasibility = infeasible;
             } else {
                 direction opt_dir;
                 point where = intersect(max_convex_c, min_concave_c);
-                double max_convex_y = *index(upys, max_convex, double);
-                double min_concave_y = *index(dnys, min_concave, double);
                 if(max_convex_y > min_concave_y) {
                     /* the optimum lies in the direction of their intersection */
                     log_position(l, "not in feasible region");
