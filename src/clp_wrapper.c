@@ -120,7 +120,7 @@ void Clp_addRows(Clp_Simplex *model, int number,
             row->f.a1 = -as[0];
             row->f.a2 = -as[1];
             row->ord  = leq;
-            row->f.b  = row_lower[i];
+            row->f.b  = -row_lower[i];
         }
     }
 }
