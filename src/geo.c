@@ -50,7 +50,7 @@ radians angle_down(point p)
        (right), the reference for atan, to down,
        the reference for Megiddo's algorithm. */
     const double offset = 3 * pi / 2;
-    theta.theta = offset - fmod(pi + atan2(p.y, p.x), pi);
+    theta.theta = fmod(offset - atan2(p.y, p.x), 2*pi);
     return theta;
 }
 

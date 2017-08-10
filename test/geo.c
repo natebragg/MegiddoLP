@@ -123,7 +123,15 @@ int test_angle_down()
     {
         point p = {1, -1};
         radians theta, expected;
-        expected.theta = 3 * pi / 4;
+        expected.theta = 7 * pi / 4;
+
+        theta = angle_down(p);
+        assert_within(theta.theta, expected.theta, epsilon);
+    }
+    {
+        point p = {0, -1};
+        radians theta, expected;
+        expected.theta = 0;
 
         theta = angle_down(p);
         assert_within(theta.theta, expected.theta, epsilon);
