@@ -59,24 +59,23 @@ static void idx_min(const double **acc, const double *v)
     *acc = (*acc == NULL || **acc > *v) ? v : *acc;
 }
 
-static void equal_to(const double *lhs, array *accum, const double *rhs)
+static void has_point(const point *p, array *accum, const constraint *c)
 {
-    if(*lhs == *rhs) {
-        *grow(accum, const double*) = rhs;
+    double b_if_has_point = c->f.a1 * p->y + c->f.a2 * p->x;
+    if(b_if_has_point == c->f.b) {
+        *grow(accum, constraint) = *c;
     }
 }
 
-static void slope_max_at(const array *upwards, double *acc, const size_t *idx)
+static void slope_max_at(double *acc, const constraint *c)
 {
-    line f = index(*upwards, *idx, constraint)->f;
-    double slope = f.a1 == 0 ? -1/f.a1 : -1 * f.a2 / f.a1;
+    double slope = -1 * c->f.a2 / c->f.a1;
     *acc = *acc < slope ? slope : *acc;
 }
 
-static void slope_min_at(const array *upwards, double *acc, const size_t *idx)
+static void slope_min_at(double *acc, const constraint *c)
 {
-    line f = index(*upwards, *idx, constraint)->f;
-    double slope = f.a1 == 0 ? -1/f.a1 : -1 * f.a2 / f.a1;
+    double slope = -1 * c->f.a2 / c->f.a1;
     *acc = *acc > slope ? slope : *acc;
 }
 
@@ -109,11 +108,6 @@ static void discard_outer(const quadrant_filter *qf, array *acc, const pair *p)
                                     (opt_side_y1 > opt_side_y2) :
                                     (opt_side_y1 < opt_side_y2)) ? *p->c1 : *p->c2;
     }
-}
-
-static void index_of_(const array *a, const double **value, size_t *out)
-{
-    *out = index_of(*a, *value);
 }
 
 static void append(array *acc, const constraint **c)
@@ -166,24 +160,27 @@ solution optimize(const logger *l, point objective, array constraints)
             } else {
                 direction opt_dir;
                 point where = intersect(max_convex_c, min_concave_c);
+                point max_convex_at_median;
+                max_convex_at_median.x = median;
+                max_convex_at_median.y = max_convex_y;
                 if(max_convex_y > min_concave_y) {
                     /* the optimum lies in the direction of their intersection */
                     log_position(l, "not in feasible region");
                     opt_dir = median < where.x ? right_of_median : left_of_median;
                 } else {
                     /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
-                    array cross_values = make_array(1, double*);
-                    array cross_indexes = map1(index_of_, &upys, *foldl1(equal_to, &max_convex_y, &cross_values, upys, array), size_t);
+                    array cross_values = make_array(1, constraint);
                     double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
-                    double s_g = *foldl1(slope_min_at, &upwards, &s_tmp, cross_indexes, double);
-                    double S_g = *foldl1(slope_max_at, &upwards, &S_tmp, cross_indexes, double);
-                    log_double_ptr_array(l, cross_values, "cross_values:\t");
+                    double s_g = 0.0, S_g = 0.0;
+                    foldl1(has_point, &max_convex_at_median, &cross_values, upwards, array);
+                    s_g = *foldl(slope_min_at, &s_tmp, cross_values, double);
+                    S_g = *foldl(slope_max_at, &S_tmp, cross_values, double);
+                    log_constraint_array(l, cross_values, "cross_values:\t");
                     log_position(l, "IN feasible region; s_g=%f, S_g=%f", s_g, S_g);
                     if(s_g <= 0 && 0 <= S_g) {
                         log_position(l, "optimum reached");
                         result.feasibility = feasible;
-                        result.optimum.x = median;
-                        result.optimum.y = max_convex_y;
+                        result.optimum = max_convex_at_median;
                     } else if(max_convex_y < min_concave_y) {
                         /* and the optimum lies in the opposite direction of their intersection. */
                         log_position(l, "feasible but not optimal");
@@ -195,7 +192,6 @@ solution optimize(const logger *l, point objective, array constraints)
                         log_position(l, "feasible but in a corner");
                         opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
                     }
-                    free_array(&cross_indexes);
                     free_array(&cross_values);
                 }
 
