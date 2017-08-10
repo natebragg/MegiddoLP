@@ -54,6 +54,7 @@ typedef struct Clp_Wrapper {
     array cols_lower;
     array row_activity;
     array col_solution;
+    point objective;
 } Clp_Wrapper;
 
 Clp_Simplex *Clp_newModel()
@@ -68,6 +69,8 @@ Clp_Simplex *Clp_newModel()
     model->cols_lower = make_array(2, constraint);
     model->row_activity = make_array(4, double);
     model->col_solution = make_array(2, double);
+    model->objective.y = 0;
+    model->objective.x = 0;
     return model;
 }
 
@@ -143,15 +146,16 @@ void Clp_addColumns(Clp_Simplex *model, int number,
                 }
             }
         }
+        *(col_len + i == 0 ? &m->objective.y : &m->objective.x) = objective[i];
         {
             constraint *col = grow(&m->cols_upper, constraint);
-            *(col_len + i == 0 ? &col->f.a1 : &col->f.a2) = objective[i];
+            *(col_len + i == 0 ? &col->f.a1 : &col->f.a2) = 1.0;
             col->ord  = leq;
             col->f.b  = column_upper[i];
         }
         {
             constraint *col = grow(&m->cols_lower, constraint);
-            *(col_len + i == 0 ? &col->f.a1 : &col->f.a2) = -objective[i];
+            *(col_len + i == 0 ? &col->f.a1 : &col->f.a2) = -1.0;
             col->ord  = leq;
             col->f.b  = column_lower[i];
         }
@@ -186,34 +190,26 @@ int Clp_initialSolve(Clp_Simplex *model)
 {
     Clp_Wrapper *m = model;
     logger l = make_logger(m);
-    point objective = {0, 0};
     solution optimum;
     array cs = make_array(m->rows_upper.length + m->rows_lower.length +
                           m->cols_upper.length + m->cols_lower.length, constraint);
     array* scs[4];
-    iter i;
     int j = 0;
-    constraint *c = NULL;
     scs[0] = &m->rows_upper;
     scs[1] = &m->rows_lower;
     scs[2] = &m->cols_upper;
     scs[3] = &m->cols_lower;
     for(; j < 4; ++j) {
-        i = make_iter(scs[j]);
+        iter i = make_iter(scs[j]);
+        constraint *c = NULL;
         log_constraint_array(&l, *scs[j], "rows[%d]:", j);
         for(c = cur(i, constraint); c; c = next(&i, constraint)) {
             *grow(&cs, constraint) = *c;
         }
     }
 
-    i = make_iter(&m->cols_upper);
-    for(c = cur(i, constraint); c; c = next(&i, constraint)) {
-        objective.y += c->f.a1;
-        objective.x += c->f.a2;
-    }
-
-    log_position(&l, "objective: {%f, %f}", objective.x, objective.y);
-    optimum = optimize(&l, objective, cs);
+    log_position(&l, "objective: {%f, %f}", m->objective.x, m->objective.y);
+    optimum = optimize(&l, m->objective, cs);
     free_array(&cs);
 
     while(m->col_solution.length < m->cols_upper.length) {
@@ -229,7 +225,7 @@ int Clp_initialSolve(Clp_Simplex *model)
         grow(&m->row_activity, double);
     }
     for(j = 0; j < m->rows_upper.length; ++j) {
-        c = index(m->rows_upper, j, constraint);
+        constraint *c = index(m->rows_upper, j, constraint);
         *index(m->row_activity, j, double) = c->f.a1 * optimum.optimum.y + c->f.a2 * optimum.optimum.x;
     }
     switch(optimum.feasibility) {
