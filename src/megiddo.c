@@ -59,6 +59,13 @@ static void idx_min(const double **acc, const double *v)
     *acc = (*acc == NULL || **acc > *v) ? v : *acc;
 }
 
+static void idx_eq(const double *val, array *acc, const double *v)
+{
+    if(*v == *val) {
+        *grow(acc, const double*) = v;
+    }
+}
+
 static void has_point(const point *p, array *accum, const constraint *c)
 {
     double b_if_has_point = c->f.a1 * p->y + c->f.a2 * p->x;
@@ -121,16 +128,33 @@ typedef struct test {
     double S;
 } test;
 
-static test one_sided_derivatives_at(point where, array set)
+static test extremes(double median, array set, void (*idx_extreme)(const double **acc, const double *v), const logger *l, const char *label)
 {
+    array ys = map1(apply_median, &median, set, double);
+    double *tmp = NULL;
+    double extreme_y = **foldl(idx_extreme, &tmp, ys, double*);
+    point where = from_coordinates(median, extreme_y);
+
+    array extremes = make_array(1, double*);
     array cross_values = make_array(1, constraint);
+    iter i = make_iter(&extremes);
     double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
     test ss = {0.0, 0.0, 0.0};
-    foldl1(has_point, &where, &cross_values, set, array);
+    double **y = NULL;
+    foldl1(idx_eq, &extreme_y, &extremes, ys, array);
+    for(y = cur(i, double*); y; y = next(&i, double*)) {
+        *grow(&cross_values, constraint) = *index(set, index_of(ys, *y), constraint);
+    }
+
     ss.y = where.y;
     ss.s = *foldl(slope_min_at, &s_tmp, cross_values, double);
     ss.S = *foldl(slope_max_at, &S_tmp, cross_values, double);
+
+    log_double_array(l, ys, "%sys:\t", label);
+    log_constraint_array(l, cross_values, "%scross_values:\t", label);
     free_array(&cross_values);
+    free_array(&extremes);
+    free_array(&ys);
     return ss;
 }
 
@@ -159,21 +183,10 @@ solution optimize(const logger *l, point objective, array constraints)
         if(pairs.length > 0) {
             array xs = map(pair_intersect_x, pairs, double);
             double median = median = find_median(&xs);
-            array upys = map1(apply_median, &median, upwards, double);
-            array dnys = map1(apply_median, &median, downwards, double);
-            double *max_tmp = NULL, *min_tmp = NULL;
-            size_t max_convex = index_of(upys, *foldl(idx_max, &max_tmp, upys, double*));
-            size_t min_concave = index_of(dnys, *foldl(idx_min, &min_tmp, dnys, double*));
-            line max_convex_c = index(upwards, max_convex, constraint)->f;
-            line min_concave_c = index(downwards, min_concave, constraint)->f;
-            double max_convex_y = *index(upys, max_convex, double);
-            double min_concave_y = *index(dnys, min_concave, double);
-            test g = one_sided_derivatives_at(from_coordinates(median, max_convex_y), upwards);
-            test h = one_sided_derivatives_at(from_coordinates(median, min_concave_y), downwards);
+            test g = extremes(median, upwards, &idx_max, l, "up");
+            test h = extremes(median, downwards, &idx_min, l, "dn");
             log_double_array(l, xs, "xs:\t");
             log_position(l, "median:\t%f", median);
-            log_double_array(l, upys, "upys:\t");
-            log_double_array(l, dnys, "dnys:\t");
             log_position(l, "s_g=%f, S_g=%f, s_h=%f, S_h=%f", g.s, g.S, h.s, h.S);
             if(g.y <= h.y && g.s <= 0 && 0 <= g.S) {
                 log_position(l, "optimum reached");
@@ -207,8 +220,6 @@ solution optimize(const logger *l, point objective, array constraints)
                     log_position(l, "feasible but not optimal");
                 }
             }
-            free_array(&dnys);
-            free_array(&upys);
             free_array(&xs);
         } else {
             array inners = map(pair_inner, parallels, constraint*);
