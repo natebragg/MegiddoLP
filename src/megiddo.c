@@ -115,17 +115,19 @@ static void append(array *acc, const constraint **c)
     *grow(acc, constraint) = **c;
 }
 
-typedef struct slopes {
+typedef struct test {
+    double y;
     double s;
     double S;
-} slopes;
+} test;
 
-static slopes one_sided_derivatives_at(point where, array set)
+static test one_sided_derivatives_at(point where, array set)
 {
     array cross_values = make_array(1, constraint);
     double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
-    slopes ss = {0.0, 0.0};
+    test ss = {0.0, 0.0, 0.0};
     foldl1(has_point, &where, &cross_values, set, array);
+    ss.y = where.y;
     ss.s = *foldl(slope_min_at, &s_tmp, cross_values, double);
     ss.S = *foldl(slope_max_at, &S_tmp, cross_values, double);
     free_array(&cross_values);
@@ -151,6 +153,9 @@ solution optimize(const logger *l, point objective, array constraints)
         array leftover = make_array(1, constraint*);
         array pairs = make_pairs(*set, &leftover);
         array parallels = partition(is_not_parallel, &pairs);
+        log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
+        log_constraint_array(l, upwards, "upwards[%d]:", upwards.length);
+        log_constraint_array(l, downwards, "downwards[%d]:", downwards.length);
         if(pairs.length > 0) {
             array xs = map(pair_intersect_x, pairs, double);
             double median = median = find_median(&xs);
@@ -163,34 +168,29 @@ solution optimize(const logger *l, point objective, array constraints)
             line min_concave_c = index(downwards, min_concave, constraint)->f;
             double max_convex_y = *index(upys, max_convex, double);
             double min_concave_y = *index(dnys, min_concave, double);
-            log_pair_array(l, pairs, "set is %s:", set == &downwards ? "downwards" : "upwards");
-            log_constraint_array(l, upwards, "upwards[%d]:", upwards.length);
-            log_constraint_array(l, downwards, "downwards[%d]:", downwards.length);
+            test g = one_sided_derivatives_at(from_coordinates(median, max_convex_y), upwards);
+            test h = one_sided_derivatives_at(from_coordinates(median, min_concave_y), downwards);
             log_double_array(l, xs, "xs:\t");
             log_position(l, "median:\t%f", median);
             log_double_array(l, upys, "upys:\t");
             log_double_array(l, dnys, "dnys:\t");
-            if(max_convex_y > min_concave_y && parallel(max_convex_c, min_concave_c)) {
-                log_line(l, max_convex_c,  "infeasible: [%d] ", max_convex);
-                log_line(l, min_concave_c, "            [%d] ", min_concave);
+            log_position(l, "s_g=%f, S_g=%f, s_h=%f, S_h=%f", g.s, g.S, h.s, h.S);
+            if(g.y <= h.y && g.s <= 0 && 0 <= g.S) {
+                log_position(l, "optimum reached");
+                result.feasibility = feasible;
+                result.optimum = from_coordinates(median, g.y);
+            } else if(g.y > h.y && g.s - h.S <= 0 && 0 <= g.S - h.s) {
+                log_position(l, "infeasible: %f > %f and %f - %f <= 0 <= %f - %f", g.y, h.y, g.s, h.S, g.S, h.s);
                 result.feasibility = infeasible;
             } else {
                 direction opt_dir;
                 point where = intersect(max_convex_c, min_concave_c);
-                point max_convex_at_median = from_coordinates(median, max_convex_y);
-                if(max_convex_y > min_concave_y) {
+                if(g.y > h.y) {
                     /* the optimum lies in the direction of their intersection */
                     log_position(l, "not in feasible region");
-                    opt_dir = median < where.x ? right_of_median : left_of_median;
                 } else {
                     /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
-                    slopes g = one_sided_derivatives_at(max_convex_at_median, upwards);
-                    log_position(l, "IN feasible region; s_g=%f, S_g=%f", g.s, g.S);
-                    if(g.s <= 0 && 0 <= g.S) {
-                        log_position(l, "optimum reached");
-                        result.feasibility = feasible;
-                        result.optimum = max_convex_at_median;
-                    } else if(max_convex_y < min_concave_y) {
+                    if(g.y < h.y) {
                         /* and the optimum lies in the opposite direction of their intersection. */
                         log_position(l, "feasible but not optimal");
                         opt_dir = where.x < median ? right_of_median : left_of_median;
