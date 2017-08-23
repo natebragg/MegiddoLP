@@ -115,6 +115,23 @@ static void append(array *acc, const constraint **c)
     *grow(acc, constraint) = **c;
 }
 
+typedef struct slopes {
+    double s;
+    double S;
+} slopes;
+
+static slopes one_sided_derivatives_at(point where, array set)
+{
+    array cross_values = make_array(1, constraint);
+    double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
+    slopes ss = {0.0, 0.0};
+    foldl1(has_point, &where, &cross_values, set, array);
+    ss.s = *foldl(slope_min_at, &s_tmp, cross_values, double);
+    ss.S = *foldl(slope_max_at, &S_tmp, cross_values, double);
+    free_array(&cross_values);
+    return ss;
+}
+
 solution optimize(const logger *l, point objective, array constraints)
 {
     solution result = {unknown, {0, 0}};
@@ -169,15 +186,9 @@ solution optimize(const logger *l, point objective, array constraints)
                     opt_dir = median < where.x ? right_of_median : left_of_median;
                 } else {
                     /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
-                    array cross_values = make_array(1, constraint);
-                    double s_tmp = 1.0/0.0, S_tmp = -1.0/0.0;
-                    double s_g = 0.0, S_g = 0.0;
-                    foldl1(has_point, &max_convex_at_median, &cross_values, upwards, array);
-                    s_g = *foldl(slope_min_at, &s_tmp, cross_values, double);
-                    S_g = *foldl(slope_max_at, &S_tmp, cross_values, double);
-                    log_constraint_array(l, cross_values, "cross_values:\t");
-                    log_position(l, "IN feasible region; s_g=%f, S_g=%f", s_g, S_g);
-                    if(s_g <= 0 && 0 <= S_g) {
+                    slopes g = one_sided_derivatives_at(max_convex_at_median, upwards);
+                    log_position(l, "IN feasible region; s_g=%f, S_g=%f", g.s, g.S);
+                    if(g.s <= 0 && 0 <= g.S) {
                         log_position(l, "optimum reached");
                         result.feasibility = feasible;
                         result.optimum = max_convex_at_median;
@@ -192,7 +203,6 @@ solution optimize(const logger *l, point objective, array constraints)
                         log_position(l, "feasible but in a corner");
                         opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
                     }
-                    free_array(&cross_values);
                 }
 
                 if(result.feasibility == unknown) {
