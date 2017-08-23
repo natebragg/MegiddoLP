@@ -183,39 +183,28 @@ solution optimize(const logger *l, point objective, array constraints)
                 log_position(l, "infeasible: %f > %f and %f - %f <= 0 <= %f - %f", g.y, h.y, g.s, h.S, g.S, h.s);
                 result.feasibility = infeasible;
             } else {
-                direction opt_dir;
-                point where = intersect(max_convex_c, min_concave_c);
+                direction opt_dir = g.y > h.y ? (g.S < h.s ? right_of_median : left_of_median) :
+                                    g.y < h.y ? (g.S < 0   ? right_of_median : left_of_median) :
+                                    g.S < 0 && g.S <= h.s  ? right_of_median : left_of_median;
+                array inners = map(pair_inner, parallels, constraint*);
+                array culled = make_array(set->length, constraint);
+                quadrant_filter f;
+                f.median = median;
+                f.opt_dir = opt_dir;
+                f.outer_is = set == &downwards ? above : below;
+                foldl1(discard_outer, &f, &culled, pairs, array);
+                foldl(append, &culled, leftover, array);
+                foldl(append, &culled, inners, array);
+                free_array(&inners);
+                free_array(set);
+                *set = culled;
                 if(g.y > h.y) {
                     /* the optimum lies in the direction of their intersection */
                     log_position(l, "not in feasible region");
                 } else {
                     /* This x-coordinate is *a* feasible solution (not necessarily the optimum) */
-                    if(g.y < h.y) {
-                        /* and the optimum lies in the opposite direction of their intersection. */
-                        log_position(l, "feasible but not optimal");
-                        opt_dir = where.x < median ? right_of_median : left_of_median;
-                    } else {
-                        /* the optimum lies to the side where min_concave_c > max_convex_c */
-                        double right_concave_y = apply(median + 1, min_concave_c);
-                        double right_convex_y = apply(median + 1, max_convex_c);
-                        log_position(l, "feasible but in a corner");
-                        opt_dir = right_convex_y < right_concave_y ? right_of_median : left_of_median;
-                    }
-                }
-
-                if(result.feasibility == unknown) {
-                    array inners = map(pair_inner, parallels, constraint*);
-                    array culled = make_array(set->length, constraint);
-                    quadrant_filter f;
-                    f.median = median;
-                    f.opt_dir = opt_dir;
-                    f.outer_is = set == &downwards ? above : below;
-                    foldl1(discard_outer, &f, &culled, pairs, array);
-                    foldl(append, &culled, leftover, array);
-                    foldl(append, &culled, inners, array);
-                    free_array(&inners);
-                    free_array(set);
-                    *set = culled;
+                    /* and the optimum lies in the opposite direction of their intersection. */
+                    log_position(l, "feasible but not optimal");
                 }
             }
             free_array(&dnys);
