@@ -18,6 +18,14 @@ double apply(double x, line f)
     return (-1 * f.a2 * x + f.b)/f.a1;
 }
 
+point from_coordinates(double x, double y)
+{
+    point p;
+    p.x = x;
+    p.y = y;
+    return p;
+}
+
 line from_points(point p, point q)
 {
     line f;

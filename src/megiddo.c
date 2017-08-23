@@ -177,9 +177,7 @@ solution optimize(const logger *l, point objective, array constraints)
             } else {
                 direction opt_dir;
                 point where = intersect(max_convex_c, min_concave_c);
-                point max_convex_at_median;
-                max_convex_at_median.x = median;
-                max_convex_at_median.y = max_convex_y;
+                point max_convex_at_median = from_coordinates(median, max_convex_y);
                 if(max_convex_y > min_concave_y) {
                     /* the optimum lies in the direction of their intersection */
                     log_position(l, "not in feasible region");

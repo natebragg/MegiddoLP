@@ -21,6 +21,7 @@ typedef struct radians {
 extern const double pi;
 
 double apply(double, line);
+point from_coordinates(double, double);
 line from_points(point, point);
 line perpendicular(line);
 line shift(line, double, double);
