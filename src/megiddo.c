@@ -3,6 +3,8 @@
 #include "logger.h"
 
 #include <stdlib.h>
+#include <math.h>
+#include <float.h>
 
 static int is_pointing_up(const constraint *c)
 {
@@ -59,9 +61,21 @@ static void idx_min(const double **acc, const double *v)
     *acc = (*acc == NULL || **acc > *v) ? v : *acc;
 }
 
+static double max(double a, double b)
+{
+    return a > b ? a : b;
+}
+
+static int close(double a, double b, double epsilon)
+{
+    double delta = fabs(a - b);
+    double scaled_epsilon = max(fabs(a), fabs(b)) * epsilon;
+    return delta <= scaled_epsilon;
+}
+
 static void idx_eq(const double *val, array *acc, const double *v)
 {
-    if(*v == *val) {
+    if(close(*v, *val, 2 * DBL_EPSILON)) {
         *grow(acc, const double*) = v;
     }
 }
