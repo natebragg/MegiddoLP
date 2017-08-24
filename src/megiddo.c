@@ -66,14 +66,6 @@ static void idx_eq(const double *val, array *acc, const double *v)
     }
 }
 
-static void has_point(const point *p, array *accum, const constraint *c)
-{
-    double b_if_has_point = c->f.a1 * p->y + c->f.a2 * p->x;
-    if(b_if_has_point == c->f.b) {
-        *grow(accum, constraint) = *c;
-    }
-}
-
 static void slope_max_at(double *acc, const constraint *c)
 {
     double slope = -1 * c->f.a2 / c->f.a1;
