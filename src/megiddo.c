@@ -75,7 +75,7 @@ static int close(double a, double b, double epsilon)
 
 static void idx_eq(const double *val, array *acc, const double *v)
 {
-    if(close(*v, *val, 2 * DBL_EPSILON)) {
+    if(close(*v, *val, 20 * DBL_EPSILON)) {
         *grow(acc, const double*) = v;
     }
 }
