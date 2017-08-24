@@ -100,9 +100,10 @@ static void discard_outer(const quadrant_filter *qf, array *acc, const pair *p)
         *grow(acc, constraint) = *p->c1;
         *grow(acc, constraint) = *p->c2;
     } else {
+        double scale = 0.5 + (qf->opt_dir == left_of_median ? qf->median <= 0 : qf->median >= 0);
         double delta = (qf->opt_dir == left_of_median) ? -1 : 1;
-        double opt_side_y1 = apply(qf->median + delta, p->c1->f);
-        double opt_side_y2 = apply(qf->median + delta, p->c2->f);
+        double opt_side_y1 = apply(scale * qf->median + delta, p->c1->f);
+        double opt_side_y2 = apply(scale * qf->median + delta, p->c2->f);
         *grow(acc, constraint) = (qf->outer_is == below ?
                                     (opt_side_y1 > opt_side_y2) :
                                     (opt_side_y1 < opt_side_y2)) ? *p->c1 : *p->c2;
